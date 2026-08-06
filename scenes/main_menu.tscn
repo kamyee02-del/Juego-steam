@@ -1,0 +1,146 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.09, 0.11, 0.15, 1)
+
+[node name="MenuPanel" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="MenuPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(420, 0)
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="MenuPanel/VBox"]
+layout_mode = 2
+text = "FUGA"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 64
+
+[node name="Subtitle" type="Label" parent="MenuPanel/VBox"]
+layout_mode = 2
+text = "Escapen juntos. Que no los descubran."
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+
+[node name="Spacer1" type="Control" parent="MenuPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 16)
+
+[node name="NameLabel" type="Label" parent="MenuPanel/VBox"]
+layout_mode = 2
+text = "Tu nombre:"
+
+[node name="NameEdit" type="LineEdit" parent="MenuPanel/VBox"]
+layout_mode = 2
+placeholder_text = "Escribe tu nombre"
+max_length = 20
+
+[node name="Spacer2" type="Control" parent="MenuPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 10)
+
+[node name="SteamHostBtn" type="Button" parent="MenuPanel/VBox"]
+layout_mode = 2
+text = "Crear partida (Steam)"
+
+[node name="HostBtn" type="Button" parent="MenuPanel/VBox"]
+layout_mode = 2
+text = "Crear partida (IP directa)"
+
+[node name="JoinRow" type="HBoxContainer" parent="MenuPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="IPEdit" type="LineEdit" parent="MenuPanel/VBox/JoinRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "IP del anfitrión (ej. 192.168.1.50)"
+
+[node name="JoinBtn" type="Button" parent="MenuPanel/VBox/JoinRow"]
+layout_mode = 2
+text = "Unirse (IP)"
+
+[node name="SteamJoinRow" type="HBoxContainer" parent="MenuPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LobbyIdEdit" type="LineEdit" parent="MenuPanel/VBox/SteamJoinRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "ID de sala de Steam (opcional)"
+
+[node name="SteamJoinBtn" type="Button" parent="MenuPanel/VBox/SteamJoinRow"]
+layout_mode = 2
+text = "Unirse (Steam)"
+
+[node name="StatusLabel" type="Label" parent="MenuPanel/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="QuitBtn" type="Button" parent="MenuPanel/VBox"]
+layout_mode = 2
+text = "Salir"
+
+[node name="LobbyPanel" type="CenterContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="LobbyPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(460, 0)
+theme_override_constants/separation = 10
+
+[node name="LobbyTitle" type="Label" parent="LobbyPanel/VBox"]
+layout_mode = 2
+text = "Sala de espera"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 40
+
+[node name="LobbyInfo" type="Label" parent="LobbyPanel/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="PlayersList" type="ItemList" parent="LobbyPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 240)
+
+[node name="StartBtn" type="Button" parent="LobbyPanel/VBox"]
+layout_mode = 2
+text = "Iniciar partida"
+
+[node name="InviteBtn" type="Button" parent="LobbyPanel/VBox"]
+layout_mode = 2
+text = "Invitar amigos de Steam"
+
+[node name="LobbyStatus" type="Label" parent="LobbyPanel/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="LeaveBtn" type="Button" parent="LobbyPanel/VBox"]
+layout_mode = 2
+text = "Salir de la sala"

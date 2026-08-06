@@ -1,0 +1,62 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/level.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="2"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(6, 4, 5.4)
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.03, 0.04, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.28, 0.32, 0.42, 1)
+ambient_light_energy = 0.5
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.16, 0.18, 0.24, 1)
+fog_density = 0.008
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_1"]
+
+[node name="Level" type="Node3D"]
+script = ExtResource("1")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+camera_attributes = SubResource("CameraAttributesPractical_1")
+
+[node name="Moon" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.353, 0.353, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 22, 0)
+light_color = Color(0.6, 0.7, 0.95, 1)
+light_energy = 0.35
+shadow_enabled = true
+
+[node name="Nav" type="NavigationRegion3D" parent="."]
+
+[node name="Interactables" type="Node3D" parent="."]
+
+[node name="Items" type="Node3D" parent="."]
+
+[node name="Bottles" type="Node3D" parent="."]
+
+[node name="Guards" type="Node3D" parent="."]
+
+[node name="Players" type="Node3D" parent="."]
+
+[node name="PlayerSpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("../Players")
+
+[node name="BottleSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("res://scenes/bottle.tscn")
+spawn_path = NodePath("../Bottles")
+
+[node name="EscapeZone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69, 2, 23)
+collision_layer = 0
+collision_mask = 2
+
+[node name="Shape" type="CollisionShape3D" parent="EscapeZone"]
+shape = SubResource("BoxShape3D_1")
+
+[node name="HUD" parent="." instance=ExtResource("2")]
