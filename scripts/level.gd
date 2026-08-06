@@ -82,16 +82,27 @@ func _ready() -> void:
 	_spawn_guards()
 	if multiplayer.is_server():
 		_ready_peers[1] = true
-	if _has_dev_flag():
-		add_child(preload("res://scripts/dev/sim_runner.gd").new())
+	_add_dev_runner()
 	_net_scene_ready.rpc_id(1)
 
 
-func _has_dev_flag() -> bool:
+## Engancha el arnés de pruebas si se pidió por línea de comandos.
+## Se carga con load() y no con preload() a propósito: el arnés se excluye al
+## exportar el juego, y un preload de un archivo ausente rompe todo este script.
+func _add_dev_runner() -> void:
+	var pedido := false
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--sim" or arg == "--sim-guards" or arg.begins_with("--shot="):
-			return true
-	return false
+			pedido = true
+			break
+	if not pedido:
+		return
+	const RUTA := "res://scripts/dev/sim_runner.gd"
+	if not ResourceLoader.exists(RUTA):
+		push_warning("El arnés de pruebas no está incluido en esta compilación.")
+		return
+	var guion: GDScript = load(RUTA)
+	add_child(guion.new())
 
 
 func _process(delta: float) -> void:
