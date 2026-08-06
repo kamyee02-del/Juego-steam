@@ -4,6 +4,7 @@ extends Node
 ##   godot --headless -- --host --autostart=5 --sim
 ## Recorre el plan de fuga completo e imprime el resultado de cada paso.
 ## Con --sim-guards en su lugar se prueba la detección y captura de los guardias.
+## Con --shot=carpeta guarda capturas de la partida (útil para revisar el aspecto).
 ## Añade --diag para volcar cada 3 s la posición de jugadores y guardias.
 
 var level: Node3D
@@ -13,6 +14,9 @@ var _failures := 0
 
 func _ready() -> void:
 	level = get_parent()
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--shot="):
+			_take_screenshots(arg.split("=", true, 1)[1])
 	if multiplayer.is_server():
 		if OS.get_cmdline_user_args().has("--sim-guards"):
 			_run_guards.call_deferred()
@@ -196,3 +200,33 @@ func _run_guards() -> void:
 	print("[SIM] === %s ===" % ("TODO CORRECTO" if _failures == 0 else "%d PRUEBA(S) FALLIDA(S)" % _failures))
 	await tree.create_timer(0.5).timeout
 	tree.quit(1 if _failures > 0 else 0)
+
+
+## Guarda capturas desde varios puntos del mapa para revisar el aspecto del nivel.
+func _take_screenshots(dir_path: String) -> void:
+	DirAccess.make_dir_recursive_absolute(dir_path)
+	var tree := get_tree()
+	await tree.create_timer(3.0).timeout
+	var cam := Camera3D.new()
+	cam.fov = 70.0
+	level.add_child(cam)
+	cam.current = true
+	var shots := [
+		["celda", Vector3(6, 6, 16), Vector3(6, 1, 4)],
+		["pasillo", Vector3(14, 4, 30), Vector3(14, 1, 8)],
+		["sala_guardias", Vector3(23, 7, 20), Vector3(23, 0, 6)],
+		["generador", Vector3(36, 7, 30), Vector3(36, 0, 42)],
+		["patio", Vector3(46, 9, 36), Vector3(62, 0, 23)],
+		["general", Vector3(30, 46, 66), Vector3(30, 0, 23)],
+	]
+	for shot in shots:
+		cam.global_position = shot[1]
+		cam.look_at(shot[2], Vector3.UP)
+		await RenderingServer.frame_post_draw
+		await RenderingServer.frame_post_draw
+		var img := get_viewport().get_texture().get_image()
+		img.save_png("%s/%s.png" % [dir_path, shot[0]])
+		print("[SHOT] %s/%s.png" % [dir_path, shot[0]])
+	cam.queue_free()
+	await tree.create_timer(0.3).timeout
+	tree.quit()

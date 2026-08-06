@@ -221,7 +221,8 @@ func _net_start_game(match_seed: int) -> void:
 
 @rpc("authority", "call_local", "reliable")
 func _net_return_to_lobby() -> void:
-	GameState.phase = GameState.Phase.LOBBY
+	# La fase sigue en ENDED para que el menú muestre el resultado de la ronda;
+	# es él quien vuelve a dejarla en LOBBY.
 	GameState.reset_run()
 	get_tree().change_scene_to_file(MENU_SCENE)
 

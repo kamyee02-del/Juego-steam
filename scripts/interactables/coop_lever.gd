@@ -98,7 +98,7 @@ func _physics_process(delta: float) -> void:
 		_handle.rotation.x = lerp_angle(_handle.rotation.x, deg_to_rad(-45.0) if held_by != 0 else 0.0, 10.0 * delta)
 	_update_lamp(both)
 
-	if not multiplayer.is_server() or done:
+	if not GameState.online() or not multiplayer.is_server() or done:
 		return
 	# Solo la palanca "maestra" (la que tiene compañera) cuenta, para no duplicar.
 	if partner == null or self.get_index() > partner.get_index():

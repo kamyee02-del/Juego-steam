@@ -48,11 +48,6 @@ func server_interact(player: Node) -> void:
 		player.net_set_hidden.rpc(level.get_path_to(self))
 
 
-func server_release(player: Node) -> void:
-	if occupant == player.peer_id():
-		net_set_occupant.rpc(0)
-
-
 @rpc("authority", "call_local", "reliable")
 func net_set_occupant(pid: int) -> void:
 	occupant = pid

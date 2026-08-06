@@ -93,3 +93,4 @@ func net_set_open(value: bool) -> void:
 	var tween := create_tween()
 	tween.tween_property(_panel, "rotation:y", deg_to_rad(-100.0) if value else 0.0, 0.9) \
 		.set_trans(Tween.TRANS_BACK)
+	GameState.objectives_changed.emit()

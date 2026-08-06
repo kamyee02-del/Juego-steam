@@ -8,14 +8,18 @@ size = Vector3(6, 4, 5.4)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
-background_color = Color(0.03, 0.04, 0.06, 1)
-ambient_light_source = 2
-ambient_light_color = Color(0.28, 0.32, 0.42, 1)
-ambient_light_energy = 0.5
+background_color = Color(0.015, 0.018, 0.03, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.2, 0.24, 0.34, 1)
+ambient_light_energy = 0.35
 tonemap_mode = 2
+tonemap_white = 3.0
 fog_enabled = true
-fog_light_color = Color(0.16, 0.18, 0.24, 1)
-fog_density = 0.008
+fog_light_color = Color(0.08, 0.1, 0.15, 1)
+fog_density = 0.012
+adjustment_enabled = true
+adjustment_contrast = 1.08
+adjustment_saturation = 1.15
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_1"]
 
@@ -29,7 +33,7 @@ camera_attributes = SubResource("CameraAttributesPractical_1")
 [node name="Moon" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866, -0.353, 0.353, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 22, 0)
 light_color = Color(0.6, 0.7, 0.95, 1)
-light_energy = 0.35
+light_energy = 0.5
 shadow_enabled = true
 
 [node name="Nav" type="NavigationRegion3D" parent="."]

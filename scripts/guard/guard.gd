@@ -66,6 +66,8 @@ func _build_cone_mesh(dist: float, half_angle: float) -> ArrayMesh:
 
 
 func _physics_process(delta: float) -> void:
+	if not GameState.online():
+		return   # el anfitrión cerró: este nodo desaparece en cuanto cambie la escena
 	if not multiplayer.is_server():
 		body.rotation.y = lerp_angle(body.rotation.y, sync_facing, 10.0 * delta)
 		_update_cone_visual(delta)

@@ -3,13 +3,13 @@ extends Node3D
 ## Todas las decisiones (capturas, rescates, escapes) las toma el servidor.
 
 signal local_player_spawned(player: Node)
-signal bottle_broke(pos: Vector3)
 
 const PLAYER_SCENE := preload("res://scenes/player.tscn")
 const GUARD_SCENE := preload("res://scenes/guard.tscn")
 const BOTTLE_SCENE := preload("res://scenes/bottle.tscn")
 
 const WALL_H := 3.4
+const PERIMETER_H := 7.0
 const WALL_T := 0.4
 const READY_TIMEOUT := 6.0
 
@@ -82,13 +82,20 @@ func _ready() -> void:
 	_spawn_guards()
 	if multiplayer.is_server():
 		_ready_peers[1] = true
-	if OS.get_cmdline_user_args().has("--sim"):
+	if _has_dev_flag():
 		add_child(preload("res://scripts/dev/sim_runner.gd").new())
 	_net_scene_ready.rpc_id(1)
 
 
+func _has_dev_flag() -> bool:
+	for arg in OS.get_cmdline_user_args():
+		if arg == "--sim" or arg == "--sim-guards" or arg.begins_with("--shot="):
+			return true
+	return false
+
+
 func _process(delta: float) -> void:
-	if not multiplayer.is_server() or _round_started:
+	if not GameState.online() or not multiplayer.is_server() or _round_started:
 		return
 	_ready_timer += delta
 	if _ready_timer >= READY_TIMEOUT and not _ready_peers.is_empty():
@@ -96,7 +103,9 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if multiplayer.is_server() and _round_started and GameState.phase == GameState.Phase.PLAYING:
+	if not GameState.online() or not multiplayer.is_server():
+		return
+	if _round_started and GameState.phase == GameState.Phase.PLAYING:
 		_check_escapes()
 
 
@@ -129,13 +138,13 @@ func _box(parent: Node, center: Vector3, box_size: Vector3, mat: Material, solid
 		mi.add_child(sb)
 
 
-func _wall(x1: float, z1: float, x2: float, z2: float, mat: Material) -> void:
-	var center := Vector3((x1 + x2) * 0.5, WALL_H * 0.5, (z1 + z2) * 0.5)
+func _wall(x1: float, z1: float, x2: float, z2: float, mat: Material, height := WALL_H) -> void:
+	var center := Vector3((x1 + x2) * 0.5, height * 0.5, (z1 + z2) * 0.5)
 	var box_size: Vector3
 	if is_equal_approx(x1, x2):
-		box_size = Vector3(WALL_T, WALL_H, absf(z2 - z1))
+		box_size = Vector3(WALL_T, height, absf(z2 - z1))
 	else:
-		box_size = Vector3(absf(x2 - x1), WALL_H, WALL_T)
+		box_size = Vector3(absf(x2 - x1), height, WALL_T)
 	_box(nav_region, center, box_size, mat)
 
 
@@ -160,15 +169,16 @@ func _build_world() -> void:
 	_box(nav_region, Vector3(53.5, -0.25, 23), Vector3(21, 0.5, 48), yard_mat)    # patio
 	_box(nav_region, Vector3(68, -0.25, 23), Vector3(10, 0.5, 6), yard_mat)       # túnel de salida
 
-	# Perímetro
-	_wall(0, 0, 64, 0, wall_mat)
-	_wall(0, 46, 64, 46, wall_mat)
-	_wall(0, 0, 0, 46, wall_mat)
-	_wall(64, 0, 64, 20, wall_mat)
-	_wall(64, 26, 64, 46, wall_mat)
+	# Perímetro exterior, más alto: encierra el recinto y tapa el horizonte
+	var fence_mat := _mat(Color(0.26, 0.27, 0.30))
+	_wall(0, 0, 64, 0, fence_mat, PERIMETER_H)
+	_wall(0, 46, 64, 46, fence_mat, PERIMETER_H)
+	_wall(0, 0, 0, 46, fence_mat, PERIMETER_H)
+	_wall(64, 0, 64, 20, fence_mat, PERIMETER_H)
+	_wall(64, 26, 64, 46, fence_mat, PERIMETER_H)
 	# Túnel de salida
-	_wall(64, 20, 73, 20, wall_mat)
-	_wall(64, 26, 73, 26, wall_mat)
+	_wall(64, 20, 73, 20, fence_mat, PERIMETER_H)
+	_wall(64, 26, 73, 26, fence_mat, PERIMETER_H)
 
 	# Bloque de celdas (hueco en z 10..12 y z 33..35 para las rejas)
 	_wall(11, 0, 11, 10, cell_mat)
@@ -209,8 +219,11 @@ func _build_world() -> void:
 		Vector3(36, 3, 10), Vector3(36, 3, 26), Vector3(36, 3, 40),
 	]:
 		_light(p, Color(1.0, 0.86, 0.66), 2.4, 13.0)
-	for p in [Vector3(48, 5, 12), Vector3(58, 5, 23), Vector3(48, 5, 36), Vector3(68, 4, 23)]:
-		_light(p, Color(0.72, 0.84, 1.0), 3.0, 18.0)
+	for p in [
+		Vector3(46, 6, 8), Vector3(46, 6, 38), Vector3(56, 6, 14),
+		Vector3(56, 6, 32), Vector3(61, 5, 23), Vector3(68, 4, 23),
+	]:
+		_light(p, Color(0.72, 0.84, 1.0), 5.5, 26.0)
 
 
 func _build_interactables() -> void:
@@ -375,10 +388,6 @@ func find_player(pid: int) -> Node:
 	return players_node.get_node_or_null(str(pid))
 
 
-func local_player() -> Node:
-	return find_player(GameState.local_id())
-
-
 # ------------------------------------------------------------------- ruido/IA
 
 @rpc("any_peer", "call_local", "unreliable")
@@ -404,11 +413,6 @@ func on_power_cut() -> void:
 		return
 	GameState.net_set_objective.rpc("power_off", true)
 	GameState.net_message.rpc("Corriente cortada. El portón ya se puede abrir.")
-
-
-@rpc("authority", "call_local", "reliable")
-func net_bottle_break(pos: Vector3) -> void:
-	bottle_broke.emit(pos)
 
 
 # -------------------------------------------------------------- interacciones
@@ -512,6 +516,12 @@ func _check_escapes() -> void:
 
 
 func on_player_left(pid: int) -> void:
+	# Libera lo que estuviera ocupando, o quedaría bloqueado el resto de la ronda.
+	for node in interactables_node.get_children():
+		if node is HidingSpot and node.occupant == pid:
+			node.net_set_occupant.rpc(0)
+		elif node is CoopLever and node.held_by == pid:
+			node.net_set_held.rpc(0)
 	var p := find_player(pid)
 	if p != null:
 		p.queue_free()

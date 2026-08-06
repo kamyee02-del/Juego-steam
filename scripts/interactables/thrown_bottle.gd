@@ -32,5 +32,4 @@ func _on_body_entered(_body: Node) -> void:
 	var level := get_tree().get_first_node_in_group("level")
 	if level != null:
 		level.server_noise(global_position, NOISE_RADIUS)
-		level.net_bottle_break.rpc(global_position)
 	_life = minf(_life, 3.0)

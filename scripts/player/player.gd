@@ -2,8 +2,6 @@ extends CharacterBody3D
 ## Rehén controlado por un jugador. Cada cliente tiene autoridad sobre su propio
 ## cuerpo (movimiento y cámara); el servidor decide capturas, rescates y escapes.
 
-signal target_changed(target: Node)
-
 enum State { FREE, CAPTURED, ESCAPED }
 
 const WALK_SPEED := 3.2
@@ -100,6 +98,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if not GameState.online():
+		return   # el anfitrión cerró: este nodo desaparece en cuanto cambie la escena
 	if not is_multiplayer_authority():
 		body.rotation.y = lerp_angle(body.rotation.y, sync_body_rotation, 12.0 * delta)
 		_apply_remote_visuals()
@@ -205,7 +205,6 @@ func _update_interaction(delta: float) -> void:
 		_stop_continuous()
 		interact_target = best
 		hold_progress = 0.0
-		target_changed.emit(best)
 
 	if interact_target == null:
 		hold_progress = 0.0

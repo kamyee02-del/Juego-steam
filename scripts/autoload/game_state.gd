@@ -72,6 +72,12 @@ func remove_player(id: int) -> void:
 	players_changed.emit()
 
 
+## Falso entre que el anfitrión cierra y el juego vuelve al menú. Consultar antes
+## de usar multiplayer.is_server() o is_multiplayer_authority() en cada fotograma.
+func online() -> bool:
+	return multiplayer.multiplayer_peer != null
+
+
 func local_id() -> int:
 	if multiplayer.multiplayer_peer == null:
 		return 0
