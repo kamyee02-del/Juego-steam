@@ -44,6 +44,10 @@ func _ready() -> void:
 	Network.left_game.connect(_show_menu)
 	GameState.players_changed.connect(_refresh_players)
 
+	# Si se vuelve aquí desde una partida, el ratón sigue capturado y el menú
+	# quedaría inservible: sin cursor y sin poder pulsar nada.
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
 	name_edit.text = Network.player_name
 	steam_host_btn.disabled = not Network.steam_available
 	steam_join_row.visible = Network.steam_available

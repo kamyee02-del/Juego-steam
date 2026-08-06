@@ -4,6 +4,8 @@ extends Node
 ##   godot --headless -- --host --autostart=5 --sim
 ## Recorre el plan de fuga completo e imprime el resultado de cada paso.
 ## Con --sim-guards en su lugar se prueba la detección y captura de los guardias.
+## Con --sim-camara se comprueba que el ratón gira la cámara (hace falta pantalla:
+## ejecútalo con xvfb-run y --rendering-driver opengl3, no en modo headless).
 ## Con --shot=carpeta guarda capturas de la partida (útil para revisar el aspecto).
 ## Añade --diag para volcar cada 3 s la posición de jugadores y guardias.
 
@@ -18,7 +20,9 @@ func _ready() -> void:
 		if arg.begins_with("--shot="):
 			_take_screenshots(arg.split("=", true, 1)[1])
 	if multiplayer.is_server():
-		if OS.get_cmdline_user_args().has("--sim-guards"):
+		if OS.get_cmdline_user_args().has("--sim-camara"):
+			_run_camara.call_deferred()
+		elif OS.get_cmdline_user_args().has("--sim-guards"):
 			_run_guards.call_deferred()
 		else:
 			_run.call_deferred()
@@ -234,3 +238,71 @@ func _take_screenshots(dir_path: String) -> void:
 	cam.queue_free()
 	await tree.create_timer(0.3).timeout
 	tree.quit()
+
+
+## Inyecta un movimiento de ratón como si lo hiciera la persona que juega.
+func _mover_raton(dx: float, dy: float) -> void:
+	var evento := InputEventMouseMotion.new()
+	evento.relative = Vector2(dx, dy)
+	evento.screen_relative = evento.relative
+	# En el centro exacto de la pantalla, que es donde está la mira: si algún
+	# elemento del HUD se traga el evento, esta prueba lo destapa.
+	evento.position = level.get_viewport().get_visible_rect().size * 0.5
+	evento.global_position = evento.position
+	Input.parse_input_event(evento)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+
+func _run_camara() -> void:
+	var tree := get_tree()
+	if not level._round_started:
+		await level.round_started
+	await tree.create_timer(1.0).timeout
+	print("[SIM] === la cámara se gira con el ratón ===")
+
+	var yo: Node3D = level.find_player(GameState.players.keys()[0])
+	_check("el ratón queda capturado al empezar", Input.mouse_mode == Input.MOUSE_MODE_CAPTURED)
+
+	var giro0: float = yo.cam_pivot.rotation.y
+	var alto0: float = yo.spring_arm.rotation.x
+
+	var carpeta := ""
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--camara-shot="):
+			carpeta = arg.split("=", true, 1)[1]
+	if not carpeta.is_empty():
+		DirAccess.make_dir_recursive_absolute(carpeta)
+		await _foto_camara(carpeta, "antes")
+
+	await _mover_raton(120.0, 0.0)
+	if not carpeta.is_empty():
+		await _mover_raton(400.0, -60.0)
+		await _foto_camara(carpeta, "despues")
+	var giro1: float = yo.cam_pivot.rotation.y
+	_check("mover el ratón a los lados gira la cámara (%.3f -> %.3f)" % [giro0, giro1],
+		not is_equal_approx(giro0, giro1))
+
+	await _mover_raton(0.0, 90.0)
+	var alto1: float = yo.spring_arm.rotation.x
+	_check("mover el ratón arriba y abajo cambia el ángulo (%.3f -> %.3f)" % [alto0, alto1],
+		not is_equal_approx(alto0, alto1))
+
+	# Un tirón enorme no debe dejar la cámara del revés.
+	await _mover_raton(0.0, -100000.0)
+	_check("el ángulo se queda dentro del tope superior (%.3f)" % yo.spring_arm.rotation.x,
+		yo.spring_arm.rotation.x <= yo.PITCH_MAX + 0.001)
+	await _mover_raton(0.0, 200000.0)
+	_check("el ángulo se queda dentro del tope inferior (%.3f)" % yo.spring_arm.rotation.x,
+		yo.spring_arm.rotation.x >= yo.PITCH_MIN - 0.001)
+
+	print("[SIM] === %s ===" % ("TODO CORRECTO" if _failures == 0 else "%d PRUEBA(S) FALLIDA(S)" % _failures))
+	await tree.create_timer(0.3).timeout
+	tree.quit(1 if _failures > 0 else 0)
+
+
+func _foto_camara(carpeta: String, nombre: String) -> void:
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	level.get_viewport().get_texture().get_image().save_png("%s/%s.png" % [carpeta, nombre])
+	print("[SIM] captura %s/%s.png" % [carpeta, nombre])

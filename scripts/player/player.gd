@@ -84,14 +84,26 @@ func _refresh_visuals() -> void:
 		name_tag.text = GameState.player_name(peer_id())
 
 
-func _unhandled_input(event: InputEvent) -> void:
+## El giro de cámara va en _input y no en _unhandled_input a propósito: con el
+## ratón capturado el puntero queda clavado en el centro de la pantalla, así que
+## cualquier elemento del HUD que haya ahí (la mira, sin ir más lejos) se quedaba
+## con el movimiento y la cámara no giraba. Aquí llega antes que la interfaz.
+func _input(event: InputEvent) -> void:
 	if not is_multiplayer_authority():
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		cam_pivot.rotate_y(-event.relative.x * MOUSE_SENS)
 		_look_pitch = clampf(_look_pitch - event.relative.y * MOUSE_SENS, PITCH_MIN, PITCH_MAX)
 		spring_arm.rotation.x = _look_pitch
-	elif event is InputEventMouseButton and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+
+
+## Los clics y el Esc se quedan aquí para que la interfaz tenga prioridad: si el
+## clic se atendiera en _input, al pulsar los botones de la pantalla final el
+## juego volvería a capturar el ratón y esos botones no funcionarían.
+func _unhandled_input(event: InputEvent) -> void:
+	if not is_multiplayer_authority():
+		return
+	if event is InputEventMouseButton and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else Input.MOUSE_MODE_CAPTURED

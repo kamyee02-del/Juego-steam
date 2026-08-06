@@ -98,7 +98,7 @@ func _ready() -> void:
 func _add_dev_runner() -> void:
 	var pedido := false
 	for arg in OS.get_cmdline_user_args():
-		if arg == "--sim" or arg == "--sim-guards" or arg.begins_with("--shot="):
+		if arg in ["--sim", "--sim-guards", "--sim-camara"] or arg.begins_with("--shot="):
 			pedido = true
 			break
 	if not pedido:
