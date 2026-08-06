@@ -6,6 +6,7 @@ extends Node
 signal lobby_entered
 signal join_failed(reason: String)
 signal left_game
+signal peer_scene_ready(id: int)
 
 const DEFAULT_PORT := 7777
 const MAX_PLAYERS := 8
@@ -20,7 +21,10 @@ var player_name := "Jugador"
 var steam_available := false
 var steam_username := ""
 var steam_lobby_id := 0
-var _steam_target_lobby := 0
+## Quién ha terminado ya de cargar el nivel. Se guarda aquí, y no en el propio
+## nivel, porque los clientes suelen cargarlo antes que el anfitrión: si el aviso
+## fuera dirigido al nodo del nivel, llegaría cuando aún no existe y se perdería.
+var _scene_ready_peers := {}
 
 
 func _ready() -> void:
@@ -216,7 +220,27 @@ func _net_start_game(match_seed: int) -> void:
 	GameState.match_seed = match_seed
 	GameState.reset_run()
 	GameState.phase = GameState.Phase.PLAYING
+	_scene_ready_peers.clear()
 	get_tree().change_scene_to_file(LEVEL_SCENE)
+
+
+## Lo llama el nivel al terminar de construirse, en todos los pares.
+func notify_scene_ready() -> void:
+	_net_scene_ready.rpc_id(1)
+
+
+func scene_ready_peers() -> Dictionary:
+	return _scene_ready_peers
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _net_scene_ready() -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	var id := 1 if sender == 0 else sender
+	_scene_ready_peers[id] = true
+	peer_scene_ready.emit(id)
 
 
 @rpc("authority", "call_local", "reliable")

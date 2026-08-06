@@ -72,8 +72,10 @@ func _node(path: String) -> Node3D:
 
 func _run() -> void:
 	var tree := get_tree()
+	if not level._round_started:
+		await level.round_started
+	await tree.create_timer(1.0).timeout
 	var ids: Array = GameState.players.keys()
-	await tree.create_timer(1.5).timeout
 	print("[SIM] === plan de fuga con %d jugador(es) ===" % ids.size())
 
 	# Los guardias no deben interferir con la comprobación de mecánicas.
@@ -168,8 +170,10 @@ func _await_until(condition: Callable, timeout: float) -> bool:
 
 func _run_guards() -> void:
 	var tree := get_tree()
+	if not level._round_started:
+		await level.round_started
+	await tree.create_timer(1.0).timeout
 	var ids: Array = GameState.players.keys()
-	await tree.create_timer(1.5).timeout
 	print("[SIM] === detección y captura ===")
 	var guard: Node3D = level.guards_node.get_node("Guard0")   # patrulla el pasillo de las celdas
 	var victim: Node3D = level.find_player(ids[0])

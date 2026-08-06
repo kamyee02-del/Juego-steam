@@ -3,6 +3,7 @@ extends Node3D
 ## Todas las decisiones (capturas, rescates, escapes) las toma el servidor.
 
 signal local_player_spawned(player: Node)
+signal round_started
 
 const PLAYER_SCENE := preload("res://scenes/player.tscn")
 const GUARD_SCENE := preload("res://scenes/guard.tscn")
@@ -81,9 +82,14 @@ func _ready() -> void:
 	_bake_navigation()
 	_spawn_guards()
 	if multiplayer.is_server():
+		# Puede que algún cliente ya avisara de que cargó el nivel antes que nosotros.
+		_ready_peers = Network.scene_ready_peers().duplicate()
 		_ready_peers[1] = true
+		Network.peer_scene_ready.connect(_on_peer_scene_ready)
 	_add_dev_runner()
-	_net_scene_ready.rpc_id(1)
+	Network.notify_scene_ready()
+	if multiplayer.is_server():
+		_check_all_ready()
 
 
 ## Engancha el arnés de pruebas si se pidió por línea de comandos.
@@ -362,12 +368,12 @@ func _spawn_guards() -> void:
 
 # ------------------------------------------------------------ inicio de ronda
 
-@rpc("any_peer", "call_local", "reliable")
-func _net_scene_ready() -> void:
-	if not multiplayer.is_server():
-		return
-	var sender := multiplayer.get_remote_sender_id()
-	_ready_peers[1 if sender == 0 else sender] = true
+func _on_peer_scene_ready(id: int) -> void:
+	_ready_peers[id] = true
+	_check_all_ready()
+
+
+func _check_all_ready() -> void:
 	if _ready_peers.size() >= GameState.players.size():
 		_start_round()
 
@@ -376,6 +382,7 @@ func _start_round() -> void:
 	if _round_started:
 		return
 	_round_started = true
+	round_started.emit()
 	var i := 0
 	for pid in GameState.players:
 		player_spawner.spawn({"id": pid, "pos": SPAWN_POINTS[i % SPAWN_POINTS.size()]})
