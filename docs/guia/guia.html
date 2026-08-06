@@ -160,6 +160,8 @@
   figure img { width: 100%; display: block; border: 1px solid var(--linea); border-radius: 1.5mm; }
   /* Recorta la captura a una banda cuando no cabe entera en la página. */
   figure.banda img { height: 55mm; object-fit: cover; object-position: center 46%; }
+  /* Figura estrecha y centrada, para capturas que si no se comen la página. */
+  figure.media { max-width: 62%; margin-left: auto; margin-right: auto; }
   figcaption { font-size: 9.5pt; color: var(--suave); margin-top: 2mm; line-height: 1.4; }
 
   .tarjetas { display: flex; gap: 5mm; margin: 4mm 0; }
@@ -436,39 +438,38 @@
   <h3>A · Todos en la misma wifi</h3>
   <ol class="pasos">
     <li>
-      <strong>El anfitrión averigua su IP.</strong><br>
-      En <strong>Windows</strong>: pulsa la tecla Windows, escribe <code>cmd</code>, abre
-      la ventana negra, escribe <code>ipconfig</code> y pulsa Enter. Busca la línea
-      <strong>Dirección IPv4</strong>.<br>
-      En <strong>Mac</strong>: Ajustes del Sistema → Red → Wi-Fi → Detalles.<br>
-      Será un número parecido a <strong>192.168.1.50</strong>.
+      <strong>Uno crea la partida.</strong> Abre el juego, escribe su nombre y pulsa el
+      botón grande <strong>CREAR PARTIDA</strong>, en el recuadro naranja. Solo lo pulsa
+      una persona del grupo.
     </li>
     <li>
-      <strong>El anfitrión crea la partida.</strong> Abre el juego, escribe su nombre
-      y pulsa <strong>«Crear partida (IP directa)»</strong>. Entrará en la sala de espera.
+      <strong>El juego le enseña su dirección.</strong> En la sala de espera aparece en
+      grande, sobre fondo verde, algo como <strong>192.168.1.50</strong>. Esa es la que
+      tiene que pasar a los demás por WhatsApp.
     </li>
     <li>
-      <strong>Los demás se unen.</strong> Abren el juego, escriben su nombre, escriben
-      la IP del anfitrión en la casilla de la derecha y pulsan <strong>«Unirse (IP)»</strong>.
+      <strong>Los demás se unen.</strong> Abren el juego, escriben su nombre, pegan esa
+      dirección en el recuadro azul (<em>¿Te unes a la de un amigo?</em>) y pulsan
+      <strong>UNIRME</strong>.
     </li>
     <li>
-      Cuando estéis todos en la lista, el anfitrión pulsa <strong>«Iniciar partida»</strong>.
+      Cuando estéis todos en la lista, quien creó la partida pulsa
+      <strong>«Iniciar partida»</strong>.
     </li>
   </ol>
 
+  <figure class="media">
+    <img src="../menu.png" alt="Menú del juego con los dos recuadros">
+    <figcaption>
+      El recuadro naranja lo pulsa quien organiza; el azul es para los demás.
+    </figcaption>
+  </figure>
+
   <div class="truco">
     <span class="titulo">Para probar tú solo</span>
-    Puedes abrir el juego dos veces en el mismo ordenador: en una creas la partida y
-    en la otra te unes escribiendo <code>127.0.0.1</code>. Va bien para ver el mapa
-    antes de quedar con los demás.
-  </div>
-
-  <div class="ojo">
-    <span class="titulo">Si no consigue unirse</span>
-    Casi siempre es el <strong>cortafuegos de Windows</strong> del anfitrión. La
-    primera vez que crea una partida, Windows muestra una ventana pidiendo permiso:
-    hay que marcar <strong>Redes privadas</strong> y pulsar <em>Permitir acceso</em>.
-    Si se cerró sin querer, basta con reiniciar el juego y volver a crear la partida.
+    Puedes abrir el juego dos veces en el mismo ordenador: en una pulsas
+    <strong>CREAR PARTIDA</strong> y en la otra escribes <code>127.0.0.1</code> y pulsas
+    <strong>UNIRME</strong>. Va bien para ver el mapa antes de quedar con los demás.
   </div>
 
   <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>6</span></div>
@@ -664,8 +665,14 @@
     <thead><tr><th>Lo que pasa</th><th>Qué hacer</th></tr></thead>
     <tbody>
       <tr>
+        <td>Pulsé UNIRME y dice que no se pudo conectar</td>
+        <td>Comprueba que has <strong>pegado la dirección</strong> en la casilla: si la dejas
+        vacía no hay a dónde conectarse. Y que quien creó la partida la tenga abierta en
+        ese momento — si cerró el juego, la sala ya no existe.</td>
+      </tr>
+      <tr>
         <td>Mi amigo no consigue unirse a mi partida</td>
-        <td>Comprobad que ha escrito bien la IP y que los dos tenéis <strong>la misma versión</strong> del juego. Si estáis en casas distintas, hace falta la red virtual de la página 7. Y revisad el permiso del cortafuegos de Windows en el ordenador del anfitrión.</td>
+        <td>Comprobad que ha copiado bien la dirección y que los dos tenéis <strong>la misma versión</strong> del juego. Si estáis en casas distintas, hace falta la red virtual de la página 7. Y mira el <strong>cortafuegos de Windows</strong> de quien creó la partida: la primera vez sale una ventana pidiendo permiso y hay que marcar <strong>Redes privadas</strong> → <em>Permitir acceso</em>. Si se cerró sin querer, reinicia el juego y vuelve a crear la partida.</td>
       </tr>
       <tr>
         <td>El juego se cierra nada más abrirlo</td>

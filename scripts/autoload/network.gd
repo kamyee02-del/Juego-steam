@@ -21,6 +21,7 @@ var player_name := "Jugador"
 var steam_available := false
 var steam_username := ""
 var steam_lobby_id := 0
+var _last_join_address := ""
 ## Quién ha terminado ya de cargar el nivel. Se guarda aquí, y no en el propio
 ## nivel, porque los clientes suelen cargarlo antes que el anfitrión: si el aviso
 ## fuera dirigido al nodo del nivel, llegaría cuando aún no existe y se perdería.
@@ -74,6 +75,15 @@ func is_connected_to_game() -> bool:
 	return transport != Transport.NONE and multiplayer.multiplayer_peer != null
 
 
+## Distinto de is_connected_to_game(): aquí la conexión está establecida de
+## verdad. Un cliente que todavía lo está intentando ya tiene peer, así que
+## comprobar solo el peer da un falso positivo.
+func is_in_lobby() -> bool:
+	if transport == Transport.NONE or multiplayer.multiplayer_peer == null:
+		return false
+	return multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
+
+
 # --- ENet (IP directa) ---
 
 func host_ip(port: int = DEFAULT_PORT) -> Error:
@@ -95,10 +105,53 @@ func join_ip(ip: String, port: int = DEFAULT_PORT) -> Error:
 	var err := peer.create_client(ip, port)
 	if err != OK:
 		return err
+	_last_join_address = ip
 	multiplayer.multiplayer_peer = peer
 	transport = Transport.ENET
 	GameState.reset()
 	return OK
+
+
+## Aborta un intento de conexión que se está eternizando.
+func cancel_join() -> void:
+	if multiplayer.multiplayer_peer != null:
+		multiplayer.multiplayer_peer.close()
+	transport = Transport.NONE
+	GameState.reset()
+	_volver_al_menu_y_soltar_peer()
+
+
+## Direcciones IPv4 de este equipo que le sirven a un amigo para conectarse,
+## ordenadas por probabilidad: primero la red de casa, luego las redes virtuales
+## tipo Radmin o Hamachi, y al final el resto.
+func local_addresses() -> Array:
+	var casa: Array = []
+	var virtuales: Array = []
+	var otras: Array = []
+	for direccion in IP.get_local_addresses():
+		if direccion.contains(":") or not direccion.is_valid_ip_address():
+			continue                      # descarta IPv6
+		if direccion.begins_with("127.") or direccion.begins_with("169.254."):
+			continue                      # bucle local y direcciones sin DHCP
+		if direccion.begins_with("192.168.") or direccion.begins_with("10.") or _es_rango_privado_172(direccion):
+			casa.append(direccion)
+		elif direccion.begins_with("25.") or direccion.begins_with("26."):
+			virtuales.append(direccion)   # Radmin VPN, Hamachi
+		else:
+			otras.append(direccion)
+	casa.append_array(virtuales)
+	casa.append_array(otras)
+	return casa
+
+
+func _es_rango_privado_172(direccion: String) -> bool:
+	if not direccion.begins_with("172."):
+		return false
+	var partes := direccion.split(".")
+	if partes.size() < 2 or not partes[1].is_valid_int():
+		return false
+	var segundo := int(partes[1])
+	return segundo >= 16 and segundo <= 31
 
 
 # --- Steam (requiere el addon GodotSteam MultiplayerPeer en addons/) ---
@@ -300,7 +353,10 @@ func _on_connected_to_server() -> void:
 func _on_connection_failed() -> void:
 	multiplayer.multiplayer_peer = null
 	transport = Transport.NONE
-	join_failed.emit("No se pudo conectar con el anfitrión.")
+	var donde := " con %s" % _last_join_address if not _last_join_address.is_empty() else ""
+	join_failed.emit(
+		"No se pudo conectar%s.\nComprueba que esa persona tenga la partida creada en este momento y que estéis en la misma red." % donde
+	)
 
 
 func _on_server_disconnected() -> void:

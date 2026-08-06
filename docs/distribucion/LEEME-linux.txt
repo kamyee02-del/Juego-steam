@@ -20,19 +20,19 @@ COMO JUGAR CON TUS AMIGOS
 -------------------------
 Uno de vosotros crea la partida y los demas se unen.
 
-- El que crea: escribe tu nombre y pulsa "Crear partida (IP directa)".
-- Los demas: escriben la IP del que ha creado la partida y pulsan
-  "Unirse (IP)".
+1. El que organiza pulsa el boton grande CREAR PARTIDA (recuadro naranja).
+   Solo lo pulsa UNA persona del grupo.
+2. El juego le muestra su direccion en grande sobre fondo verde, algo como
+   192.168.1.50. Esa es la que tiene que pasar a los demas por WhatsApp.
+3. Los demas pegan esa direccion en el recuadro azul y pulsan UNIRME.
+   Ojo: si dejas la casilla vacia no puedes entrar, hace falta la direccion.
+4. Cuando esteis todos en la lista, quien organiza pulsa "Iniciar partida".
 
-Si estais en la misma casa (misma wifi), el anfitrion puede ver su IP
-escribiendo en un terminal:  ip addr
-La IP es algo como 192.168.1.50.
+Eso funciona tal cual si estais en la misma casa (misma wifi).
 
-Si cada uno esta en su casa, lo mas facil es que todos instaleis un programa
-gratuito de red virtual como Radmin VPN o ZeroTier: os une en una red comun y
-entonces funciona igual que si estuvierais en la misma casa.
-
-Todo esto viene explicado con detalle en la guia en PDF.
+Si cada uno esta en su casa, antes hay que instalar un programa gratuito de
+red virtual como Radmin VPN o ZeroTier: os une en una red comun y a partir de
+ahi funciona igual. Viene explicado en la guia en PDF.
 
 
 CONTROLES

@@ -1,6 +1,45 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bloque"]
+bg_color = Color(0.13, 0.16, 0.21, 1)
+border_width_left = 4
+border_color = Color(0.78, 0.43, 0.13, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bloque2"]
+bg_color = Color(0.13, 0.16, 0.21, 1)
+border_width_left = 4
+border_color = Color(0.2, 0.55, 0.78, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lobbyip"]
+bg_color = Color(0.11, 0.19, 0.15, 1)
+border_width_left = 4
+border_color = Color(0.24, 0.7, 0.42, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -24,7 +63,7 @@ anchor_bottom = 1.0
 
 [node name="VBox" type="VBoxContainer" parent="MenuPanel"]
 layout_mode = 2
-custom_minimum_size = Vector2(420, 0)
+custom_minimum_size = Vector2(520, 0)
 theme_override_constants/separation = 10
 
 [node name="Title" type="Label" parent="MenuPanel/VBox"]
@@ -41,7 +80,7 @@ theme_override_font_sizes/font_size = 18
 
 [node name="Spacer1" type="Control" parent="MenuPanel/VBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 16)
+custom_minimum_size = Vector2(0, 10)
 
 [node name="NameLabel" type="Label" parent="MenuPanel/VBox"]
 layout_mode = 2
@@ -54,47 +93,104 @@ max_length = 20
 
 [node name="Spacer2" type="Control" parent="MenuPanel/VBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 10)
+custom_minimum_size = Vector2(0, 8)
 
-[node name="SteamHostBtn" type="Button" parent="MenuPanel/VBox"]
+[node name="HostBox" type="PanelContainer" parent="MenuPanel/VBox"]
 layout_mode = 2
-text = "Crear partida (Steam)"
+theme_override_styles/panel = SubResource("StyleBoxFlat_bloque")
 
-[node name="HostBtn" type="Button" parent="MenuPanel/VBox"]
+[node name="VBox" type="VBoxContainer" parent="MenuPanel/VBox/HostBox"]
 layout_mode = 2
-text = "Crear partida (IP directa)"
+theme_override_constants/separation = 6
 
-[node name="JoinRow" type="HBoxContainer" parent="MenuPanel/VBox"]
+[node name="Titulo" type="Label" parent="MenuPanel/VBox/HostBox/VBox"]
+layout_mode = 2
+text = "¿Organizas tú la partida?"
+theme_override_font_sizes/font_size = 19
+
+[node name="Ayuda" type="Label" parent="MenuPanel/VBox/HostBox/VBox"]
+layout_mode = 2
+text = "Solo una persona del grupo pulsa esto. Después verás en pantalla la dirección que tienes que pasarle a los demás."
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.66, 0.71, 0.79, 1)
+
+[node name="HostBtn" type="Button" parent="MenuPanel/VBox/HostBox/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+text = "CREAR PARTIDA"
+theme_override_font_sizes/font_size = 19
+
+[node name="JoinBox" type="PanelContainer" parent="MenuPanel/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bloque2")
+
+[node name="VBox" type="VBoxContainer" parent="MenuPanel/VBox/JoinBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Titulo" type="Label" parent="MenuPanel/VBox/JoinBox/VBox"]
+layout_mode = 2
+text = "¿Te unes a la de un amigo?"
+theme_override_font_sizes/font_size = 19
+
+[node name="Ayuda" type="Label" parent="MenuPanel/VBox/JoinBox/VBox"]
+layout_mode = 2
+text = "Necesitas la dirección que te pase quien creó la partida. Sin ella no puedes entrar."
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.66, 0.71, 0.79, 1)
+
+[node name="JoinRow" type="HBoxContainer" parent="MenuPanel/VBox/JoinBox/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="IPEdit" type="LineEdit" parent="MenuPanel/VBox/JoinRow"]
+[node name="IPEdit" type="LineEdit" parent="MenuPanel/VBox/JoinBox/VBox/JoinRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "IP del anfitrión (ej. 192.168.1.50)"
+custom_minimum_size = Vector2(0, 42)
+placeholder_text = "Pega aquí la dirección (ej. 192.168.1.50)"
 
-[node name="JoinBtn" type="Button" parent="MenuPanel/VBox/JoinRow"]
+[node name="JoinBtn" type="Button" parent="MenuPanel/VBox/JoinBox/VBox/JoinRow"]
 layout_mode = 2
-text = "Unirse (IP)"
-
-[node name="SteamJoinRow" type="HBoxContainer" parent="MenuPanel/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="LobbyIdEdit" type="LineEdit" parent="MenuPanel/VBox/SteamJoinRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-placeholder_text = "ID de sala de Steam (opcional)"
-
-[node name="SteamJoinBtn" type="Button" parent="MenuPanel/VBox/SteamJoinRow"]
-layout_mode = 2
-text = "Unirse (Steam)"
+custom_minimum_size = Vector2(120, 42)
+text = "UNIRME"
+theme_override_font_sizes/font_size = 17
 
 [node name="StatusLabel" type="Label" parent="MenuPanel/VBox"]
 layout_mode = 2
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
+
+[node name="SteamBox" type="VBoxContainer" parent="MenuPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SteamHostBtn" type="Button" parent="MenuPanel/VBox/SteamBox"]
+layout_mode = 2
+text = "Crear partida por Steam"
+
+[node name="SteamJoinRow" type="HBoxContainer" parent="MenuPanel/VBox/SteamBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LobbyIdEdit" type="LineEdit" parent="MenuPanel/VBox/SteamBox/SteamJoinRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "ID de sala de Steam (opcional)"
+
+[node name="SteamJoinBtn" type="Button" parent="MenuPanel/VBox/SteamBox/SteamJoinRow"]
+layout_mode = 2
+text = "Unirse (Steam)"
+
+[node name="SteamNota" type="Label" parent="MenuPanel/VBox/SteamBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.55, 0.6, 0.68, 1)
 
 [node name="QuitBtn" type="Button" parent="MenuPanel/VBox"]
 layout_mode = 2
@@ -109,7 +205,7 @@ anchor_bottom = 1.0
 
 [node name="VBox" type="VBoxContainer" parent="LobbyPanel"]
 layout_mode = 2
-custom_minimum_size = Vector2(460, 0)
+custom_minimum_size = Vector2(540, 0)
 theme_override_constants/separation = 10
 
 [node name="LobbyTitle" type="Label" parent="LobbyPanel/VBox"]
@@ -117,6 +213,35 @@ layout_mode = 2
 text = "Sala de espera"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 40
+
+[node name="AddressBox" type="PanelContainer" parent="LobbyPanel/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lobbyip")
+
+[node name="VBox" type="VBoxContainer" parent="LobbyPanel/VBox/AddressBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Titulo" type="Label" parent="LobbyPanel/VBox/AddressBox/VBox"]
+layout_mode = 2
+text = "Pásales esta dirección a tus amigos:"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.7, 0.85, 0.75, 1)
+
+[node name="Direccion" type="Label" parent="LobbyPanel/VBox/AddressBox/VBox"]
+layout_mode = 2
+text = "..."
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+
+[node name="Nota" type="Label" parent="LobbyPanel/VBox/AddressBox/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.62, 0.7, 0.66, 1)
 
 [node name="LobbyInfo" type="Label" parent="LobbyPanel/VBox"]
 layout_mode = 2
@@ -126,11 +251,13 @@ autowrap_mode = 2
 
 [node name="PlayersList" type="ItemList" parent="LobbyPanel/VBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 240)
+custom_minimum_size = Vector2(0, 210)
 
 [node name="StartBtn" type="Button" parent="LobbyPanel/VBox"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 44)
 text = "Iniciar partida"
+theme_override_font_sizes/font_size = 18
 
 [node name="InviteBtn" type="Button" parent="LobbyPanel/VBox"]
 layout_mode = 2
