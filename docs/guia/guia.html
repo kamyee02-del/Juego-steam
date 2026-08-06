@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Fuga — Guía para descargar, instalar y jugar</title>
+<style>
+  @page { size: A4; margin: 0; }
+
+  :root {
+    --tinta: #1b2430;
+    --suave: #5c6675;
+    --naranja: #c9661a;
+    --naranja-claro: #fdf1e6;
+    --azul: #24699e;
+    --azul-claro: #eaf2f9;
+    --verde: #2f7d4f;
+    --verde-claro: #eaf5ee;
+    --rojo: #b4392f;
+    --rojo-claro: #fdeeec;
+    --linea: #d9d5cd;
+    --papel: #ffffff;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Liberation Sans", "DejaVu Sans", Arial, sans-serif;
+    color: var(--tinta);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .pagina {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+    background: var(--papel);
+    page-break-after: always;
+    break-after: page;
+    padding: 18mm 18mm 20mm 18mm;
+  }
+  .pagina:last-child { page-break-after: auto; break-after: auto; }
+
+  /* ---------- Portada ---------- */
+  .portada {
+    background: #131a24;
+    color: #f2efe9;
+    padding: 0;
+  }
+  /* Columna flexible: el título arriba y la captura pegada al pie. */
+  .portada .marco {
+    display: flex; flex-direction: column;
+    height: 100%; padding: 32mm 20mm 40mm 20mm;
+  }
+  .portada .etiqueta {
+    font-size: 10pt; letter-spacing: 0.32em; text-transform: uppercase;
+    color: #c9661a; font-weight: bold; margin-bottom: 6mm;
+  }
+  .portada h1 {
+    font-size: 62pt; margin: 0; letter-spacing: 0.14em; line-height: 1;
+  }
+  .portada .lema {
+    font-size: 15pt; color: #a8b2c0; margin: 5mm 0 0 0; line-height: 1.5;
+  }
+  .portada .barra { height: 3mm; width: 46mm; background: #c9661a; margin: 8mm 0 0 0; }
+  .portada figure { margin: auto 0 0 0; }
+  .portada img { width: 100%; display: block; border: 1px solid #2a3442; }
+  .portada .datos {
+    display: flex; gap: 8mm; margin: 9mm 0 0 0;
+    font-size: 10.5pt; color: #a8b2c0;
+  }
+  .portada .datos div { border-left: 2px solid #c9661a; padding-left: 3.5mm; }
+  .portada .datos b { display: block; color: #f2efe9; font-size: 12pt; margin-bottom: 0.8mm; }
+  .portada .pie {
+    position: absolute; left: 20mm; right: 20mm; bottom: 16mm;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    font-size: 10pt; color: #8d97a5; border-top: 1px solid #2a3442; padding-top: 5mm;
+  }
+  .portada .pie strong { color: #f2efe9; display: block; font-size: 12pt; margin-bottom: 1mm; }
+
+  /* ---------- Cabecera y pie de páginas normales ---------- */
+  .cabecera {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 2px solid var(--naranja); padding-bottom: 3mm; margin-bottom: 8mm;
+  }
+  .cabecera .juego { font-weight: bold; letter-spacing: 0.22em; font-size: 10pt; color: var(--naranja); }
+  .cabecera .seccion { font-size: 9.5pt; color: var(--suave); }
+  .pie-pagina {
+    position: absolute; left: 18mm; right: 18mm; bottom: 10mm;
+    display: flex; justify-content: space-between;
+    font-size: 8.5pt; color: #97a0ad; border-top: 1px solid var(--linea); padding-top: 2.5mm;
+  }
+
+  /* ---------- Tipografía ---------- */
+  h2 { font-size: 24pt; margin: 0 0 2mm 0; line-height: 1.15; }
+  h2 .num {
+    display: inline-block; background: var(--naranja); color: #fff;
+    width: 11mm; height: 11mm; line-height: 11mm; text-align: center;
+    border-radius: 50%; font-size: 15pt; margin-right: 4mm; vertical-align: 1mm;
+  }
+  h3 { font-size: 13pt; margin: 7mm 0 2.5mm 0; color: var(--tinta); }
+  h3.so { display: flex; align-items: center; gap: 3mm; }
+  h3.so .chip {
+    font-size: 8.5pt; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 1mm 2.5mm; border-radius: 2mm; color: #fff;
+  }
+  .chip.win { background: var(--azul); }
+  .chip.mac { background: #4a4a4a; }
+  p { font-size: 11pt; line-height: 1.55; margin: 0 0 3mm 0; }
+  .entradilla { font-size: 12pt; color: var(--suave); line-height: 1.5; margin-bottom: 6mm; }
+  strong { font-weight: bold; }
+  code {
+    font-family: "Liberation Mono", "DejaVu Sans Mono", monospace;
+    background: #eeecE8; padding: 0.6mm 1.4mm; border-radius: 1mm; font-size: 10pt;
+  }
+  .comando {
+    font-family: "Liberation Mono", "DejaVu Sans Mono", monospace;
+    background: #1b2430; color: #e8e4dc; padding: 3.5mm 4mm; border-radius: 1.5mm;
+    font-size: 10.5pt; margin: 2.5mm 0 3.5mm 0; word-break: break-all;
+  }
+
+  ol.pasos { margin: 0 0 3mm 0; padding: 0; list-style: none; counter-reset: p; }
+  ol.pasos li {
+    counter-increment: p; position: relative; padding-left: 9mm;
+    font-size: 11pt; line-height: 1.55; margin-bottom: 3mm;
+  }
+  ol.pasos li::before {
+    content: counter(p); position: absolute; left: 0; top: 0.3mm;
+    width: 6mm; height: 6mm; line-height: 6mm; text-align: center;
+    background: var(--tinta); color: #fff; border-radius: 50%; font-size: 9pt; font-weight: bold;
+  }
+  ul.simple { margin: 0 0 3mm 0; padding-left: 5mm; }
+  ul.simple li { font-size: 11pt; line-height: 1.55; margin-bottom: 2mm; }
+
+  .aviso, .truco, .ojo {
+    border-left: 3mm solid; border-radius: 1.5mm; padding: 4mm 5mm; margin: 4mm 0;
+    font-size: 10.5pt; line-height: 1.5;
+  }
+  .aviso { background: var(--azul-claro); border-color: var(--azul); }
+  .truco { background: var(--verde-claro); border-color: var(--verde); }
+  .ojo   { background: var(--rojo-claro); border-color: var(--rojo); }
+  .aviso .titulo, .truco .titulo, .ojo .titulo {
+    font-weight: bold; display: block; margin-bottom: 1.5mm; font-size: 11pt;
+  }
+  .aviso .titulo { color: var(--azul); }
+  .truco .titulo { color: var(--verde); }
+  .ojo .titulo { color: var(--rojo); }
+
+  table { width: 100%; border-collapse: collapse; margin: 3mm 0 4mm 0; }
+  th, td { text-align: left; padding: 2.6mm 3mm; font-size: 10.5pt; vertical-align: top; }
+  th { background: var(--tinta); color: #fff; font-size: 10pt; }
+  tbody tr:nth-child(even) { background: #f6f4f0; }
+  td:first-child { white-space: nowrap; font-weight: bold; }
+  table.ancha td:first-child { white-space: normal; }
+
+  figure { margin: 4mm 0; }
+  figure img { width: 100%; display: block; border: 1px solid var(--linea); border-radius: 1.5mm; }
+  /* Recorta la captura a una banda cuando no cabe entera en la página. */
+  figure.banda img { height: 55mm; object-fit: cover; object-position: center 46%; }
+  figcaption { font-size: 9.5pt; color: var(--suave); margin-top: 2mm; line-height: 1.4; }
+
+  .tarjetas { display: flex; gap: 5mm; margin: 4mm 0; }
+  .tarjeta {
+    flex: 1; border: 1px solid var(--linea); border-radius: 2mm; padding: 4mm 4.5mm;
+    background: #faf9f7;
+  }
+  .tarjeta h4 { margin: 0 0 2mm 0; font-size: 11.5pt; }
+  .tarjeta p { font-size: 10pt; margin-bottom: 0; line-height: 1.45; }
+
+  .indice { margin-top: 4mm; }
+  .indice div {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 11.5pt; padding: 2.6mm 0; border-bottom: 1px dotted var(--linea);
+  }
+  .indice span:last-child { color: var(--suave); font-size: 10pt; }
+
+  .fuga { margin: 4mm 0; padding: 0; list-style: none; counter-reset: f; }
+  .fuga li {
+    counter-increment: f; position: relative; padding: 3mm 4mm 3mm 13mm;
+    border: 1px solid var(--linea); border-radius: 2mm; margin-bottom: 2.5mm;
+    font-size: 10.5pt; line-height: 1.45; background: #faf9f7;
+  }
+  .fuga li::before {
+    content: counter(f); position: absolute; left: 4mm; top: 50%; transform: translateY(-50%);
+    width: 7mm; height: 7mm; line-height: 7mm; text-align: center;
+    background: var(--naranja); color: #fff; border-radius: 50%; font-size: 10pt; font-weight: bold;
+  }
+  .fuga li b.t { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ============ 1. PORTADA ============ -->
+<section class="pagina portada">
+  <div class="marco">
+    <div class="etiqueta">Guía de instalación</div>
+    <h1>FUGA</h1>
+    <div class="barra"></div>
+    <p class="lema">
+      Sois rehenes encerrados en un complejo.<br>
+      Para salir tendréis que cooperar — y que no os vean.
+    </p>
+    <div class="datos">
+      <div><b>2 a 8</b>jugadores</div>
+      <div><b>Windows y Mac</b>sin instalar nada más</div>
+      <div><b>Gratis</b>sin cuentas ni registros</div>
+    </div>
+    <figure>
+      <img src="../general.png" alt="Vista general del complejo del juego">
+    </figure>
+  </div>
+  <div class="pie">
+    <div>
+      <strong>Descargar, instalar y jugar con tus amigos</strong>
+      Juego cooperativo de sigilo para 2 a 8 jugadores · Windows y Mac
+    </div>
+    <div>Versión 1.0</div>
+  </div>
+</section>
+
+<!-- ============ 2. QUÉ NECESITAS ============ -->
+<section class="pagina">
+  <div class="cabecera"><span class="juego">FUGA</span><span class="seccion">Antes de empezar</span></div>
+
+  <h2>Antes de empezar</h2>
+  <p class="entradilla">
+    Esta guía está pensada para que la sigas de principio a fin sin saber nada de
+    informática. Puedes reenviársela tal cual a tus amigos: sirve para todos.
+  </p>
+
+  <h3>Qué hace falta</h3>
+  <ul class="simple">
+    <li>Un ordenador con <strong>Windows</strong> o un <strong>Mac</strong>. No funciona en móvil ni en tablet.</li>
+    <li><strong>Unos 10 minutos</strong> la primera vez. Después, entrar a jugar son 10 segundos.</li>
+    <li>Conexión a internet, y <strong>al menos dos personas</strong>: hay un paso del juego que es imposible en solitario.</li>
+  </ul>
+  <p>No hay que instalar Steam, ni crear cuentas, ni pagar nada.</p>
+
+  <div class="ojo">
+    <span class="titulo">Lo más importante de toda la guía</span>
+    <strong>Todos tenéis que descargar la misma versión del juego.</strong> Si uno
+    tiene una versión distinta, no podrá entrar en la partida de los demás. Pasadles
+    a todos el mismo enlace, el de la página 3.
+  </div>
+
+  <div class="aviso">
+    <span class="titulo">Windows y Mac os van a mostrar un aviso de seguridad</span>
+    Es normal y no significa que el juego tenga virus. Aparece con cualquier programa
+    cuyo autor no haya pagado un certificado de firma digital (unos 100 € al año en
+    Windows, 99 € al año en Mac). En el <strong>paso 2</strong> se explica cómo
+    continuar en cada sistema.
+  </div>
+
+  <h3>Qué vas a encontrar</h3>
+  <div class="indice">
+    <div><span><strong>Paso 1</strong> — Descargar el juego</span><span>página 3</span></div>
+    <div><span><strong>Paso 2</strong> — Abrirlo por primera vez</span><span>páginas 4 y 5</span></div>
+    <div><span><strong>Paso 3</strong> — Conectaros entre vosotros</span><span>páginas 6 y 7</span></div>
+    <div><span><strong>Paso 4</strong> — Cómo se juega</span><span>páginas 8 a 10</span></div>
+    <div><span><strong>Paso 5</strong> — Si algo no funciona</span><span>página 11</span></div>
+    <div><span>Anexos — Steam y cómo modificar el juego</span><span>página 12</span></div>
+  </div>
+
+  <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>2</span></div>
+</section>
+
+<!-- ============ 3. DESCARGAR ============ -->
+<section class="pagina">
+  <div class="cabecera"><span class="juego">FUGA</span><span class="seccion">Paso 1 · Descargar</span></div>
+
+  <h2><span class="num">1</span>Descargar el juego</h2>
+  <p class="entradilla">Entra en esta dirección desde tu navegador. Es la misma para todos.</p>
+
+  <div class="comando">github.com/kamyee02-del/Juego-steam/releases/latest</div>
+
+  <p>
+    Verás una página con el título <strong>«Fuga — versión jugable»</strong>. Baja
+    hasta el apartado <strong>Assets</strong> y haz clic en el archivo que
+    corresponda a tu ordenador:
+  </p>
+
+  <table>
+    <thead><tr><th>Si tienes…</th><th>Descarga este archivo</th></tr></thead>
+    <tbody>
+      <tr><td>Windows</td><td><code>Fuga-Windows.zip</code></td></tr>
+      <tr><td>Mac</td><td><code>Fuga-Mac.zip</code></td></tr>
+      <tr><td>Linux</td><td><code>Fuga-Linux.zip</code></td></tr>
+    </tbody>
+  </table>
+
+  <p>Aprovecha y descarga también <code>Guia-Fuga.pdf</code>: es este mismo documento.</p>
+
+  <h3 class="so"><span class="chip win">Windows</span> Descomprimir el archivo</h3>
+  <ol class="pasos">
+    <li>Abre la carpeta <strong>Descargas</strong> y busca <code>Fuga-Windows.zip</code>.</li>
+    <li>Haz clic derecho encima y elige <strong>«Extraer todo…»</strong>.</li>
+    <li>Pulsa <strong>Extraer</strong>. Se creará una carpeta llamada <em>Fuga-Windows</em>.</li>
+  </ol>
+
+  <div class="ojo">
+    <span class="titulo">No juegues desde dentro del ZIP</span>
+    Si haces doble clic en el archivo comprimido y abres el juego desde ahí, dará
+    error o se cerrará solo. Hay que extraerlo antes, sí o sí.
+  </div>
+
+  <h3 class="so"><span class="chip mac">Mac</span> Descomprimir el archivo</h3>
+  <ol class="pasos">
+    <li>Abre la carpeta <strong>Descargas</strong> y haz doble clic en <code>Fuga-Mac.zip</code>.</li>
+    <li>Se creará sola una carpeta llamada <em>Fuga-Mac</em> con la aplicación dentro.</li>
+    <li>Arrastra <strong>Fuga</strong> a tu carpeta <strong>Aplicaciones</strong>.</li>
+  </ol>
+
+  <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>3</span></div>
+</section>
+
+<!-- ============ 4. ABRIR EN WINDOWS ============ -->
+<section class="pagina">
+  <div class="cabecera"><span class="juego">FUGA</span><span class="seccion">Paso 2 · Abrirlo · Windows</span></div>
+
+  <h2><span class="num">2</span>Abrirlo por primera vez</h2>
+  <h3 class="so"><span class="chip win">Windows</span> Pasar el aviso azul</h3>
+
+  <p>
+    Entra en la carpeta <em>Fuga-Windows</em> y haz doble clic en <strong>Fuga</strong>
+    (el archivo con extensión <code>.exe</code>).
+  </p>
+  <p>
+    Casi seguro que aparecerá una ventana azul que dice
+    <strong>«Windows protegió tu PC»</strong> y solo ofrece un botón de
+    <em>No ejecutar</em>. No te quedes ahí:
+  </p>
+
+  <ol class="pasos">
+    <li>Haz clic en el texto pequeño <strong>«Más información»</strong>, debajo del mensaje.</li>
+    <li>Aparecerá un botón nuevo: <strong>«Ejecutar de todas formas»</strong>. Púlsalo.</li>
+    <li>El juego se abrirá. <strong>Esto solo pasa la primera vez.</strong></li>
+  </ol>
+
+  <div class="aviso">
+    <span class="titulo">¿Por qué sale ese aviso?</span>
+    Windows enseña esa pantalla a todo programa que no reconoce, y solo reconoce
+    los que han comprado un certificado de firma digital. Es un trámite de pago,
+    no una comprobación de seguridad: un virus con certificado no daría aviso, y
+    este juego sin certificado sí lo da. Puedes revisar el código completo en
+    GitHub, en la dirección de la página 3.
+  </div>
+
+  <h3>Si el antivirus borra el archivo</h3>
+  <p>
+    Algunos antivirus (sobre todo Avast y AVG) borran los juegos hechos con este
+    motor por precaución. Si el archivo desaparece solo:
+  </p>
+  <ul class="simple">
+    <li>Abre tu antivirus, busca la lista de <strong>cuarentena</strong> y restaura el archivo.</li>
+    <li>Añade la carpeta <em>Fuga-Windows</em> a las <strong>exclusiones</strong> del antivirus.</li>
+    <li>Vuelve a descargar el ZIP si ya no está.</li>
+  </ul>
+
+  <div class="truco">
+    <span class="titulo">Consejo</span>
+    Crea un acceso directo en el escritorio: clic derecho sobre <strong>Fuga</strong>
+    → <em>Mostrar más opciones</em> → <em>Enviar a</em> → <em>Escritorio (crear acceso directo)</em>.
+    Así lo abres de un clic las próximas veces.
+  </div>
+
+  <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>4</span></div>
+</section>
+
+<!-- ============ 5. ABRIR EN MAC ============ -->
+<section class="pagina">
+  <div class="cabecera"><span class="juego">FUGA</span><span class="seccion">Paso 2 · Abrirlo · Mac</span></div>
+
+  <h2><span class="num">2</span>Abrirlo por primera vez</h2>
+  <h3 class="so"><span class="chip mac">Mac</span> Dar permiso a la aplicación</h3>
+
+  <p>
+    Haz doble clic en <strong>Fuga</strong>. macOS dirá que
+    <strong>«no se puede abrir porque procede de un desarrollador no
+    identificado»</strong> y solo dejará cancelar. Se arregla así:
+  </p>
+
+  <ol class="pasos">
+    <li>Cierra ese mensaje.</li>
+    <li>Abre el menú <strong>Apple</strong> (arriba a la izquierda) → <strong>Ajustes del Sistema</strong>.</li>
+    <li>Entra en <strong>Privacidad y seguridad</strong> y baja del todo.</li>
+    <li>Verás una frase sobre <em>Fuga</em> con un botón <strong>«Abrir de todos modos»</strong>. Púlsalo.</li>
+    <li>Vuelve a hacer doble clic en el juego y confirma con <strong>Abrir</strong>.</li>
+  </ol>
+  <p>Ya está: <strong>solo hay que hacerlo una vez</strong>.</p>
+
+  <div class="ojo">
+    <span class="titulo">Si dice que la aplicación «está dañada»</span>
+    No lo está: es una etiqueta que macOS pone a todo lo descargado de internet.
+    Abre la aplicación <strong>Terminal</strong> (búscala con Cmd + Espacio),
+    escribe exactamente esto <em>incluido el espacio del final</em>:
+    <div class="comando">xattr -dr com.apple.quarantine </div>
+    y sin pulsar Enter todavía, <strong>arrastra el icono de Fuga hasta la ventana
+    del Terminal</strong>. Se completará solo con la ruta. Ahora sí, pulsa Enter y
+    vuelve a abrir el juego.
+  </div>
+
+  <div class="aviso">
+    <span class="titulo">¿Por qué sale ese aviso?</span>
+    Apple pide una suscripción anual de desarrollador para que las aplicaciones se
+    abran sin preguntar. Este juego no la tiene, así que macOS avisa aunque el
+    programa sea inofensivo. El código está publicado y se puede revisar.
+  </div>
+
+  <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>5</span></div>
+</section>
+
+<!-- ============ 6. CONECTAR - MISMA CASA ============ -->
+<section class="pagina">
+  <div class="cabecera"><span class="juego">FUGA</span><span class="seccion">Paso 3 · Conectaros</span></div>
+
+  <h2><span class="num">3</span>Conectaros entre vosotros</h2>
+  <p class="entradilla">
+    Uno crea la partida (el <strong>anfitrión</strong>) y los demás se unen a él.
+    Cómo hacerlo depende de si estáis juntos o cada uno en su casa.
+  </p>
+
+  <div class="tarjetas">
+    <div class="tarjeta">
+      <h4>Estáis en la misma casa</h4>
+      <p>Misma wifi o mismo router. Funciona directamente, sin configurar nada. Sigue esta página.</p>
+    </div>
+    <div class="tarjeta">
+      <h4>Cada uno en su casa</h4>
+      <p>Hace falta un paso extra de 5 minutos que se hace una sola vez. Está en la página siguiente.</p>
+    </div>
+  </div>
+
+  <h3>A · Todos en la misma wifi</h3>
+  <ol class="pasos">
+    <li>
+      <strong>El anfitrión averigua su IP.</strong><br>
+      En <strong>Windows</strong>: pulsa la tecla Windows, escribe <code>cmd</code>, abre
+      la ventana negra, escribe <code>ipconfig</code> y pulsa Enter. Busca la línea
+      <strong>Dirección IPv4</strong>.<br>
+      En <strong>Mac</strong>: Ajustes del Sistema → Red → Wi-Fi → Detalles.<br>
+      Será un número parecido a <strong>192.168.1.50</strong>.
+    </li>
+    <li>
+      <strong>El anfitrión crea la partida.</strong> Abre el juego, escribe su nombre
+      y pulsa <strong>«Crear partida (IP directa)»</strong>. Entrará en la sala de espera.
+    </li>
+    <li>
+      <strong>Los demás se unen.</strong> Abren el juego, escriben su nombre, escriben
+      la IP del anfitrión en la casilla de la derecha y pulsan <strong>«Unirse (IP)»</strong>.
+    </li>
+    <li>
+      Cuando estéis todos en la lista, el anfitrión pulsa <strong>«Iniciar partida»</strong>.
+    </li>
+  </ol>
+
+  <div class="truco">
+    <span class="titulo">Para probar tú solo</span>
+    Puedes abrir el juego dos veces en el mismo ordenador: en una creas la partida y
+    en la otra te unes escribiendo <code>127.0.0.1</code>. Va bien para ver el mapa
+    antes de quedar con los demás.
+  </div>
+
+  <div class="ojo">
+    <span class="titulo">Si no consigue unirse</span>
+    Casi siempre es el <strong>cortafuegos de Windows</strong> del anfitrión. La
+    primera vez que crea una partida, Windows muestra una ventana pidiendo permiso:
+    hay que marcar <strong>Redes privadas</strong> y pulsar <em>Permitir acceso</em>.
+    Si se cerró sin querer, basta con reiniciar el juego y volver a crear la partida.
+  </div>
+
+  <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>6</span></div>
+</section>
+
+<!-- ============ 7. CONECTAR - INTERNET ============ -->
+<section class="pagina">
+  <div class="cabecera"><span class="juego">FUGA</span><span class="seccion">Paso 3 · Conectaros por internet</span></div>
+
+  <h2>B · Cada uno en su casa</h2>
+  <p class="entradilla">
+    Por internet los routers bloquean las conexiones directas. La solución más fácil
+    es una <strong>red virtual</strong>: un programa gratuito que os hace creer a
+    todos los ordenadores que están en la misma wifi. A partir de ahí, todo funciona
+    igual que en la página anterior.
+  </p>
+
+  <h3>Con Radmin VPN (gratis, el más sencillo en Windows)</h3>
+  <ol class="pasos">
+    <li>Todos entráis en <strong>radmin-vpn.com</strong> y descargáis el programa.</li>
+    <li>Lo instaláis y lo abrís. No hay que registrarse.</li>
+    <li>Uno pulsa <strong>Red → Crear red</strong>, se inventa un nombre y una contraseña, y se los pasa a los demás por WhatsApp.</li>
+    <li>Los demás pulsan <strong>Red → Unirse a una red</strong> y escriben ese nombre y esa contraseña.</li>
+    <li>Ahora todos os veis en la lista de Radmin. <strong>La IP que aparece ahí al lado del anfitrión</strong> (empieza por 26.) es la que hay que escribir en el juego.</li>
+  </ol>
+
+  <div class="aviso">
+    <span class="titulo">¿Alguien usa Mac?</span>
+    Radmin VPN solo existe para Windows. Si en el grupo hay Macs, usad
+    <strong>ZeroTier</strong> (zerotier.com) o <strong>Tailscale</strong>
+    (tailscale.com): son igual de gratuitos y funcionan en los dos sistemas. La idea
+    es idéntica — uno crea la red, los demás se unen con el código que les pase, y
+    después usáis la IP que os asigne el programa.
+  </div>
+
+  <h3>Alternativa avanzada: abrir el puerto</h3>
+  <p>
+    Si preferís no instalar nada, el anfitrión puede abrir en su router el
+    <strong>puerto 7777 (UDP)</strong> apuntando a su ordenador, y pasar a los demás
+    su IP pública (la que sale al buscar «cuál es mi ip» en Google). Es más
+    engorroso, cambia según la marca del router y algunas operadoras no lo permiten,
+    por eso recomendamos la red virtual.
+  </p>
+
+  <div class="truco">
+    <span class="titulo">Consejo de anfitrión</span>
+    Que haga de anfitrión quien tenga <strong>mejor conexión</strong> y, a ser
+    posible, cable de red en vez de wifi. El anfitrión es quien lleva las cuentas de
+    la partida, así que su conexión marca la fluidez para todos.
+  </div>
+
+  <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>7</span></div>
+</section>
+
+<!-- ============ 8. CÓMO SE JUEGA ============ -->
+<section class="pagina">
+  <div class="cabecera"><span class="juego">FUGA</span><span class="seccion">Paso 4 · Cómo se juega</span></div>
+
+  <h2><span class="num">4</span>Cómo se juega</h2>
+  <p class="entradilla">
+    Empezáis todos encerrados en la misma celda. Para salir hay que completar cinco
+    objetivos en orden. Los veréis siempre arriba a la izquierda de la pantalla.
+  </p>
+
+  <ol class="fuga">
+    <li><b class="t">Forzad la reja de la celda.</b> Hay que mantener pulsada la tecla un rato, así que conviene que alguien vigile.</li>
+    <li><b class="t">Encontrad la llave de bronce.</b> Cambia de escondite en cada partida; suele estar en el almacén. Abre la puerta del bloque de celdas.</li>
+    <li><b class="t">Encontrad la tarjeta de seguridad.</b> Está en la sala de guardias. Abre la puerta que da al patio.</li>
+    <li><b class="t">Cortad la corriente.</b> En la sala del generador hay dos palancas separadas, y las dos deben mantenerse pulsadas <strong>a la vez y por dos personas distintas</strong>. Este paso es imposible en solitario.</li>
+    <li><b class="t">Abrid el portón y salid.</b> Cruzad la salida del fondo del patio.</li>
+  </ol>
+
+  <div class="ojo">
+    <span class="titulo">Si te pillan</span>
+    Te encierran en la celda del sur, y un compañero tiene que ir hasta allí a
+    liberarte manteniendo pulsada la tecla E en la reja. <strong>Solo perdéis
+    cuando no queda nadie libre</strong>, así que rescatar merece la pena casi siempre.
+  </div>
+
+  <div class="truco">
+    <span class="titulo">Hablad entre vosotros</span>
+    Poneos antes en una llamada de Discord o de WhatsApp. El juego no lleva chat de
+    voz, y sin hablar el paso del generador es prácticamente imposible de coordinar.
+  </div>
+
+  <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>8</span></div>
+</section>
+
+<!-- ============ 9. CONTROLES ============ -->
+<section class="pagina">
+  <div class="cabecera"><span class="juego">FUGA</span><span class="seccion">Paso 4 · Controles</span></div>
+
+  <h2>Controles</h2>
+
+  <table>
+    <thead><tr><th>Tecla</th><th>Qué hace</th></tr></thead>
+    <tbody>
+      <tr><td>W A S D</td><td>Moverte</td></tr>
+      <tr><td>Ratón</td><td>Girar la cámara alrededor de tu personaje</td></tr>
+      <tr><td>Shift</td><td>Correr — rápido, pero se te oye desde muy lejos</td></tr>
+      <tr><td>Ctrl o C</td><td>Agacharte — lento, silencioso y mucho más difícil de ver</td></tr>
+      <tr><td>E</td><td>Interactuar. Algunas acciones hay que mantenerlas pulsadas</td></tr>
+      <tr><td>Q</td><td>Lanzar una botella para distraer a los guardias</td></tr>
+      <tr><td>Esc</td><td>Soltar el ratón (para salir de la ventana) o volver a capturarlo</td></tr>
+    </tbody>
+  </table>
+
+  <figure>
+    <img src="../pasillo.png" alt="Pasillo de las celdas con la puerta de bronce">
+    <figcaption>
+      El pasillo de las celdas. A la derecha, la puerta con la franja naranja: esa es
+      la que abre la llave de bronce. Arriba a la izquierda tenéis siempre la lista de
+      objetivos; en el centro, el aviso de si os están viendo; abajo, lo que podéis
+      hacer con la tecla E allí donde estáis.
+    </figcaption>
+  </figure>
+
+  <div class="truco">
+    <span class="titulo">Lo primero que conviene mirar</span>
+    El aviso del centro de la pantalla resume vuestra situación de un vistazo:
+    <strong>OCULTOS</strong> significa que nadie os ha detectado,
+    <strong>TE ESTÁN VIENDO</strong> que un guardia empieza a fijarse en vosotros, y
+    <strong>¡TE PERSIGUEN!</strong> que ya vais tarde.
+  </div>
+
+  <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>9</span></div>
+</section>
+
+<!-- ============ 10. SIGILO ============ -->
+<section class="pagina">
+  <div class="cabecera"><span class="juego">FUGA</span><span class="seccion">Paso 4 · Pasar desapercibidos</span></div>
+
+  <h2>Pasar desapercibidos</h2>
+  <p class="entradilla">
+    Todo el juego se reduce a esto: llegar a los objetivos sin que ningún guardia os
+    ponga la vista encima.
+  </p>
+
+  <h3>Las tres reglas del sigilo</h3>
+  <table class="ancha">
+    <thead><tr><th>Regla</th><th>Por qué importa</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Mira el cono de luz</td>
+        <td>Cada guardia proyecta en el suelo el cono de lo que ve. <strong>Amarillo</strong>: patrullando tranquilo. <strong>Naranja</strong>: sospecha y va a investigar. <strong>Rojo</strong>: te ha visto y te persigue. No ven a través de las paredes.</td>
+      </tr>
+      <tr>
+        <td>El ruido delata</td>
+        <td>Correr se oye a 15 metros; caminar, a 6; agachado no haces ningún ruido. Cuando haya un guardia cerca, agachaos aunque tardéis más.</td>
+      </tr>
+      <tr>
+        <td>Usad las botellas</td>
+        <td>Las encontraréis por el mapa. Al lanzarlas con Q hacen un estruendo que se oye a 22 metros y atrae a los guardias a ese punto: es la forma de sacar a uno de su ruta y pasar por detrás.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="truco">
+    <span class="titulo">Escondeos</span>
+    Armarios, cajas, barriles y los huecos bajo los escritorios sirven de escondite:
+    acercaos y pulsad E. Dentro no os ven, pero tampoco podéis moveros. Pulsad E otra
+    vez para salir. Es la mejor jugada cuando ya os están persiguiendo: romped la
+    línea de visión doblando una esquina y meteos en el primer escondite.
+  </div>
+
+  <div class="truco">
+    <span class="titulo">Repartíos el trabajo</span>
+    Lo que mejor funciona es ir en parejas: uno se asoma y canta dónde está el guardia
+    mientras el otro fuerza la cerradura o cruza el pasillo. Ir todos en fila por el
+    mismo pasillo es la forma más rápida de que os pillen a todos a la vez.
+  </div>
+
+  <figure class="banda">
+    <img src="../patio.png" alt="El patio de noche con el portón de salida al fondo">
+    <figcaption>
+      El patio, ya al final del recorrido. Al fondo, el portón de salida: mientras siga
+      electrificado brilla en azul, y en cuanto cortéis la corriente en el generador se
+      vuelve verde y se puede abrir.
+    </figcaption>
+  </figure>
+
+  <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>10</span></div>
+</section>
+
+<!-- ============ 10. PROBLEMAS ============ -->
+<section class="pagina">
+  <div class="cabecera"><span class="juego">FUGA</span><span class="seccion">Paso 5 · Si algo falla</span></div>
+
+  <h2><span class="num">5</span>Si algo no funciona</h2>
+  <p class="entradilla">Estos son los tropiezos más habituales y cómo se resuelven.</p>
+
+  <table class="ancha">
+    <thead><tr><th>Lo que pasa</th><th>Qué hacer</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Mi amigo no consigue unirse a mi partida</td>
+        <td>Comprobad que ha escrito bien la IP y que los dos tenéis <strong>la misma versión</strong> del juego. Si estáis en casas distintas, hace falta la red virtual de la página 7. Y revisad el permiso del cortafuegos de Windows en el ordenador del anfitrión.</td>
+      </tr>
+      <tr>
+        <td>El juego se cierra nada más abrirlo</td>
+        <td>Casi seguro que lo estás ejecutando desde dentro del ZIP. Extrae la carpeta primero (página 3) y abre el juego desde ella.</td>
+      </tr>
+      <tr>
+        <td>Windows no me deja abrirlo</td>
+        <td><em>Más información</em> → <em>Ejecutar de todas formas</em> (página 4).</td>
+      </tr>
+      <tr>
+        <td>El Mac dice que está dañado</td>
+        <td>Usa el comando <code>xattr</code> de la página 5. No está dañado: es la etiqueta de descarga de macOS.</td>
+      </tr>
+      <tr>
+        <td>El antivirus me borra el archivo</td>
+        <td>Restáuralo desde la cuarentena del antivirus y añade la carpeta a las exclusiones (página 4).</td>
+      </tr>
+      <tr>
+        <td>Va a tirones o se ve entrecortado</td>
+        <td>Que haga de anfitrión quien tenga mejor conexión, a ser posible por cable. Cerrad Chrome y las descargas mientras jugáis.</td>
+      </tr>
+      <tr>
+        <td>Se me va el ratón fuera de la ventana</td>
+        <td>Haz clic dentro del juego para volver a capturarlo. Con Esc lo sueltas cuando quieras salir.</td>
+      </tr>
+      <tr>
+        <td>Entramos pero no veo a nadie</td>
+        <td>Todos empezáis en la misma celda; si alguien no aparece, es que su conexión se cayó al empezar. Volved al menú y cread la partida otra vez.</td>
+      </tr>
+      <tr>
+        <td>Se cerró el juego del anfitrión</td>
+        <td>La partida termina para todos: el anfitrión es quien la sostiene. Volved a crearla.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="aviso">
+    <span class="titulo">Si nada de esto lo arregla</span>
+    En la página del proyecto en GitHub (la dirección de la página 3) hay un apartado
+    <strong>Issues</strong> donde se puede describir el problema. Cuenta qué sistema
+    usas, qué hiciste y qué salió en pantalla.
+  </div>
+
+  <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>11</span></div>
+</section>
+
+<!-- ============ 11. ANEXOS ============ -->
+<section class="pagina">
+  <div class="cabecera"><span class="juego">FUGA</span><span class="seccion">Anexos</span></div>
+
+  <h2>Anexo A · Sobre Steam</h2>
+  <p>
+    El juego está preparado para funcionar con Steam, pero conviene saber en qué
+    punto está exactamente:
+  </p>
+  <ul class="simple">
+    <li>
+      <strong>La versión que acabas de descargar se conecta por IP</strong>, como
+      explica el paso 3. No necesita Steam para nada y funciona igual de bien.
+    </li>
+    <li>
+      <strong>Invitar desde la lista de amigos de Steam</strong> (sin IPs) ya está
+      programado, pero requiere añadir al proyecto dos complementos gratuitos
+      —GodotSteam y SteamMultiplayerPeer— y volver a compilarlo. Está explicado en el
+      archivo <code>README.md</code> del repositorio.
+    </li>
+    <li>
+      <strong>Publicarlo en la tienda de Steam</strong> para que se instale como
+      cualquier otro juego exige registrarse como socio de Valve y pagar
+      <strong>100 dólares</strong> por el identificador de la aplicación (se
+      recuperan si el juego vende). Después hay que rellenar la ficha de tienda y
+      esperar a que Valve lo revise.
+    </li>
+  </ul>
+
+  <h2 style="margin-top:10mm">Anexo B · Modificar el juego</h2>
+  <p>
+    Todo el código es libre y está en el repositorio. Si quieres cambiar el mapa, la
+    dificultad de los guardias o añadir cosas:
+  </p>
+  <ol class="pasos">
+    <li>Descarga <strong>Godot 4.4</strong> (la versión normal, no la de .NET) desde <strong>godotengine.org</strong>. No hace falta instalarlo: es un único archivo que se ejecuta.</li>
+    <li>Descarga el proyecto entero desde GitHub con el botón verde <strong>Code → Download ZIP</strong> y descomprímelo.</li>
+    <li>Abre Godot, pulsa <strong>Importar</strong> y elige el archivo <code>project.godot</code> de la carpeta.</li>
+    <li>Pulsa <strong>F5</strong> para jugar y probar los cambios al momento.</li>
+    <li>Cuando quieras repartir tu versión: <strong>Proyecto → Exportar</strong>. Ya están preparados los ajustes de Windows, Mac y Linux.</li>
+  </ol>
+
+  <div class="truco">
+    <span class="titulo">Dónde tocar cada cosa</span>
+    La velocidad y la vista de los guardias están en
+    <code>scripts/guard/guard.gd</code>; el mapa, los objetivos y dónde aparecen las
+    llaves, en <code>scripts/level.gd</code>. Los dos archivos están comentados en
+    español.
+  </div>
+
+  <div class="aviso">
+    <span class="titulo">Una idea para más adelante</span>
+    El juego admitiría un modo en el que <strong>uno de vosotros haga de
+    secuestrador</strong> en lugar de dejarlo todo a los guardias automáticos. La
+    parte de red ya está preparada para ello.
+  </div>
+
+  <div class="pie-pagina"><span>Fuga — Guía de instalación</span><span>12</span></div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,62 @@
+FUGA - Juego cooperativo de escape para 2-8 jugadores
+=====================================================
+
+COMO ABRIRLO
+------------
+Abre un terminal en esta carpeta y da permisos de ejecucion al archivo:
+
+   chmod +x Fuga.x86_64
+
+Despues ejecutalo con:
+
+   ./Fuga.x86_64
+
+Tambien puedes marcarlo como ejecutable desde el gestor de archivos:
+clic derecho sobre Fuga.x86_64 > Propiedades > Permisos > "Permitir ejecutar
+el archivo como un programa".
+
+
+COMO JUGAR CON TUS AMIGOS
+-------------------------
+Uno de vosotros crea la partida y los demas se unen.
+
+- El que crea: escribe tu nombre y pulsa "Crear partida (IP directa)".
+- Los demas: escriben la IP del que ha creado la partida y pulsan
+  "Unirse (IP)".
+
+Si estais en la misma casa (misma wifi), el anfitrion puede ver su IP
+escribiendo en un terminal:  ip addr
+La IP es algo como 192.168.1.50.
+
+Si cada uno esta en su casa, lo mas facil es que todos instaleis un programa
+gratuito de red virtual como Radmin VPN o ZeroTier: os une en una red comun y
+entonces funciona igual que si estuvierais en la misma casa.
+
+Todo esto viene explicado con detalle en la guia en PDF.
+
+
+CONTROLES
+---------
+  WASD ............ moverte
+  Raton ........... girar la camara
+  Shift ........... correr (rapido, pero hace mucho ruido)
+  Ctrl o C ........ agacharte (lento y silencioso)
+  E ............... interactuar (algunas acciones hay que mantenerlas)
+  Q ............... lanzar una botella para distraer a los guardias
+  Esc ............. soltar o capturar el raton
+
+
+EL PLAN DE FUGA
+---------------
+1. Forzar la reja de vuestra celda.
+2. Encontrar la llave de bronce (cambia de sitio cada partida).
+3. Encontrar la tarjeta de seguridad, en la sala de guardias.
+4. Cortar la corriente en el generador: hay DOS palancas y hacen falta DOS
+   personas manteniendolas pulsadas a la vez.
+5. Abrir el porton del fondo y salir.
+
+Si un guardia te ve, te persigue; si te alcanza, te encierra en la celda sur
+y un companero tiene que ir a liberarte. Solo perdeis cuando no queda nadie
+libre.
+
+Codigo fuente y guia: https://github.com/kamyee02-del/Juego-steam

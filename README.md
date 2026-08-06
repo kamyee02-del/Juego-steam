@@ -6,6 +6,22 @@ cooperar para salir sin que los guardias los descubran.
 
 ![El complejo visto desde arriba](docs/general.png)
 
+## Descargar y jugar
+
+No hace falta instalar nada más: descarga el ZIP de tu sistema, descomprímelo y
+haz doble clic.
+
+**[⬇ Descargar la última versión](https://github.com/kamyee02-del/Juego-steam/releases/latest)**
+· Windows, Mac y Linux
+
+**[📄 Guía paso a paso en PDF](docs/Guia-Fuga.pdf)** — cómo descargarlo,
+cómo pasar el aviso de seguridad de Windows y de Mac, y cómo conectaros entre
+vosotros. Pensada para reenviársela a tus amigos tal cual.
+
+> La primera vez, Windows y macOS avisan de que la aplicación no está firmada.
+> Es normal en cualquier programa sin certificado de pago; la guía explica cómo
+> continuar en cada sistema.
+
 ## Cómo se juega
 
 Empiezan encerrados en la celda norte. El plan de fuga es este:

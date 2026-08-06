@@ -1,0 +1,169 @@
+name: Compilar y publicar la descarga
+
+# Compila el juego para Windows, Mac y Linux y publica los ZIP en un Release
+# para que cualquiera pueda descargarlos sin instalar Godot.
+
+on:
+  push:
+    branches: [claude/multiplayer-steam-game-ug4hww]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: 4.4.1
+  RELEASE_TAG: v1.0
+
+jobs:
+  escritorio:
+    name: Windows y Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Godot y las plantillas de exportación
+        run: |
+          set -eux
+          BASE="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -sSL -o godot.zip "$BASE/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          sudo mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot
+          sudo chmod +x /usr/local/bin/godot
+          curl -sSL -o templates.tpz "$BASE/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -q templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          mv templates "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+
+      - name: Importar los recursos del proyecto
+        # La primera importación siempre devuelve error al terminar; es normal.
+        run: |
+          godot --headless --import || true
+          godot --headless --import || true
+
+      - name: Exportar los ejecutables
+        run: |
+          set -eux
+          mkdir -p export/windows export/linux
+          godot --headless --export-release "Windows Desktop" export/windows/Fuga.exe
+          godot --headless --export-release "Linux" export/linux/Fuga.x86_64
+          test -s export/windows/Fuga.exe
+          test -s export/linux/Fuga.x86_64
+
+      - name: Empaquetar
+        run: |
+          set -eux
+          mkdir -p pack/Fuga-Windows pack/Fuga-Linux
+          cp export/windows/Fuga.exe steam_appid.txt pack/Fuga-Windows/
+          cp docs/distribucion/LEEME-windows.txt pack/Fuga-Windows/LEEME.txt
+          cp export/linux/Fuga.x86_64 steam_appid.txt pack/Fuga-Linux/
+          cp docs/distribucion/LEEME-linux.txt pack/Fuga-Linux/LEEME.txt
+          chmod +x pack/Fuga-Linux/Fuga.x86_64
+          mkdir -p dist
+          (cd pack && zip -qr ../dist/Fuga-Windows.zip Fuga-Windows)
+          (cd pack && zip -qr ../dist/Fuga-Linux.zip Fuga-Linux)
+          ls -la dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: escritorio
+          path: dist/*.zip
+
+  mac:
+    name: Mac
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Godot y las plantillas de exportación
+        run: |
+          set -eux
+          BASE="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -sSL -o godot.zip "$BASE/Godot_v${GODOT_VERSION}-stable_macos.universal.zip"
+          unzip -q godot.zip
+          curl -sSL -o templates.tpz "$BASE/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -q templates.tpz
+          mkdir -p "$HOME/Library/Application Support/Godot/export_templates"
+          mv templates "$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable"
+
+      - name: Importar los recursos del proyecto
+        run: |
+          ./Godot.app/Contents/MacOS/Godot --headless --import || true
+          ./Godot.app/Contents/MacOS/Godot --headless --import || true
+
+      - name: Exportar la aplicación
+        run: |
+          set -eux
+          mkdir -p export/macos
+          ./Godot.app/Contents/MacOS/Godot --headless --export-release "macOS" export/macos/Fuga.app
+          test -d export/macos/Fuga.app
+
+      - name: Firmar (ad-hoc) y empaquetar
+        # Sin ninguna firma, los Mac con chip Apple se niegan a abrir la app.
+        # La firma ad-hoc es gratuita y basta para que arranque; el aviso de
+        # "desarrollador no identificado" sigue saliendo y se explica en la guía.
+        run: |
+          set -eux
+          codesign --force --deep --sign - --timestamp=none export/macos/Fuga.app
+          codesign --verify --deep --strict --verbose=2 export/macos/Fuga.app
+          mkdir -p pack/Fuga-Mac dist
+          cp -R export/macos/Fuga.app pack/Fuga-Mac/
+          cp docs/distribucion/LEEME-mac.txt pack/Fuga-Mac/LEEME.txt
+          ditto -c -k --sequesterRsrc --keepParent pack/Fuga-Mac dist/Fuga-Mac.zip
+          ls -la dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac
+          path: dist/*.zip
+
+  publicar:
+    name: Publicar el Release
+    needs: [escritorio, mac]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: descargas
+
+      - name: Reunir los archivos
+        run: |
+          set -eux
+          mkdir -p dist
+          find descargas -name '*.zip' -exec cp {} dist/ \;
+          cp docs/Guia-Fuga.pdf dist/ || echo "aún no hay guía en PDF"
+          ls -la dist
+
+      - name: Crear o actualizar el Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eux
+          NOTAS=$(cat <<'EOF'
+          ## Descarga el juego y juega con tus amigos
+
+          | Tu sistema | Descarga |
+          |---|---|
+          | Windows | `Fuga-Windows.zip` |
+          | Mac | `Fuga-Mac.zip` |
+          | Linux | `Fuga-Linux.zip` |
+
+          **Descarga también `Guia-Fuga.pdf`**: explica paso a paso cómo abrirlo
+          la primera vez (los dos sistemas muestran un aviso de seguridad porque
+          la aplicación no está firmada con un certificado de pago) y cómo
+          conectaros entre vosotros.
+
+          Importante: **todos tenéis que usar la misma versión** del juego.
+          EOF
+          )
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" dist/* --clobber
+            gh release edit "$RELEASE_TAG" --notes "$NOTAS"
+          else
+            gh release create "$RELEASE_TAG" dist/* \
+              --target "${{ github.sha }}" \
+              --title "Fuga — versión jugable" \
+              --notes "$NOTAS"
+          fi
