@@ -9,7 +9,7 @@ config_version=5
 config/name="Fuga"
 config/description="Juego cooperativo de escape y sigilo para 2-8 jugadores. Los rehenes deben cooperar para escapar sin ser descubiertos."
 run/main_scene="res://scenes/main_menu.tscn"
-config/features=PackedStringArray("4.4", "Forward Plus")
+config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -103,3 +103,10 @@ quick_4={
 
 ; Necesario para exportar a macOS universal / Apple Silicon.
 textures/vram_compression/import_etc2_astc=true
+
+; "Compatibility" en vez de "Forward+": funciona en tarjetas gráficas mucho más
+; antiguas o débiles (incluidas Intel integradas viejas). Con nuestros gráficos
+; de formas simples y colores planos no se pierde nada visible, y evita que el
+; mundo 3D salga en negro en ordenadores donde Forward+ no está soportado.
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
