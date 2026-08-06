@@ -204,15 +204,13 @@ func return_to_lobby() -> void:
 func leave() -> void:
 	if multiplayer.multiplayer_peer != null:
 		multiplayer.multiplayer_peer.close()
-	multiplayer.multiplayer_peer = null
 	transport = Transport.NONE
 	if steam_available and steam_lobby_id != 0:
 		Engine.get_singleton("Steam").call("leaveLobby", steam_lobby_id)
 	steam_lobby_id = 0
 	GameState.reset()
 	left_game.emit()
-	if get_tree().current_scene == null or get_tree().current_scene.scene_file_path != MENU_SCENE:
-		get_tree().change_scene_to_file(MENU_SCENE)
+	_volver_al_menu_y_soltar_peer()
 
 
 @rpc("authority", "call_local", "reliable")
@@ -306,9 +304,20 @@ func _on_connection_failed() -> void:
 
 
 func _on_server_disconnected() -> void:
-	multiplayer.multiplayer_peer = null
+	# Marcamos la desconexión antes de nada: is_connected_to_game() ya da falso
+	# aunque el peer siga un momento en pie.
 	transport = Transport.NONE
 	GameState.reset()
 	join_failed.emit("El anfitrión cerró la partida.")
+	_volver_al_menu_y_soltar_peer()
+
+
+## Descarta el peer solo después de que el nivel haya salido del árbol. Al revés,
+## Godot intenta limpiar su caché de red apuntando a nodos que aún existen y
+## llena la consola de errores de desconexión.
+func _volver_al_menu_y_soltar_peer() -> void:
 	if get_tree().current_scene != null and get_tree().current_scene.scene_file_path != MENU_SCENE:
 		get_tree().change_scene_to_file(MENU_SCENE)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	multiplayer.multiplayer_peer = null
