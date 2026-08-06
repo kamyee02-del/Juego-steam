@@ -98,3 +98,8 @@ quick_4={
 3d_physics/layer_4="interact"
 3d_physics/layer_5="thrown"
 3d_physics/layer_6="doors"
+
+[rendering]
+
+; Necesario para exportar a macOS universal / Apple Silicon.
+textures/vram_compression/import_etc2_astc=true
