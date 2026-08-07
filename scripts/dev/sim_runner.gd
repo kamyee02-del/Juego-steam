@@ -20,11 +20,15 @@ func _ready() -> void:
 		if arg.begins_with("--shot="):
 			_take_screenshots(arg.split("=", true, 1)[1])
 	if multiplayer.is_server():
-		if OS.get_cmdline_user_args().has("--sim-camara"):
+		var args := OS.get_cmdline_user_args()
+		# Cada prueba se pide por su nombre. Antes, pedir solo --shot lanzaba
+		# también la partida guiada, que movía a los personajes y estropeaba
+		# las capturas.
+		if args.has("--sim-camara"):
 			_run_camara.call_deferred()
-		elif OS.get_cmdline_user_args().has("--sim-guards"):
+		elif args.has("--sim-guards"):
 			_run_guards.call_deferred()
-		else:
+		elif args.has("--sim"):
 			_run.call_deferred()
 	else:
 		GameState.game_ended.connect(_report_client_view)
@@ -219,6 +223,20 @@ func _take_screenshots(dir_path: String) -> void:
 	cam.fov = 70.0
 	level.add_child(cam)
 	cam.current = true
+	# Primeros planos: la cámara se coloca respecto al personaje de verdad, no en
+	# un punto fijo, porque los jugadores y guardias se mueven por el mapa.
+	for pareja in [["personaje_cerca", level.players_node], ["guardia_cerca", level.guards_node]]:
+		var quienes: Array = pareja[1].get_children()
+		if quienes.is_empty():
+			continue
+		var sujeto: Node3D = quienes[0]
+		cam.global_position = sujeto.global_position + Vector3(0, 1.3, 3.2)
+		cam.look_at(sujeto.global_position + Vector3(0, 0.9, 0), Vector3.UP)
+		await RenderingServer.frame_post_draw
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png("%s/%s.png" % [dir_path, pareja[0]])
+		print("[SHOT] %s/%s.png" % [dir_path, pareja[0]])
+
 	var shots := [
 		["celda", Vector3(6, 6, 16), Vector3(6, 1, 4)],
 		["pasillo", Vector3(14, 4, 30), Vector3(14, 1, 8)],

@@ -36,6 +36,8 @@ var _awareness := 0.0
 var _repath := 0.0
 var _cone_pulse := 0.0
 
+var modelo: ModeloPersonaje
+
 @onready var body: Node3D = $Body
 @onready var view_cone: MeshInstance3D = $Body/ViewCone
 @onready var agent: NavigationAgent3D = $NavAgent
@@ -45,6 +47,12 @@ var _cone_pulse := 0.0
 func _ready() -> void:
 	add_to_group("guards")
 	view_cone.mesh = _build_cone_mesh(VIEW_DISTANCE, VIEW_ANGLE)
+	# El caballero con armadura hace de guardia: se distingue a simple vista de
+	# los rehenes, que usan el resto de modelos.
+	modelo = ModeloPersonaje.new()
+	modelo.name = "Modelo"
+	body.add_child(modelo)
+	modelo.montar(ModeloPersonaje.GUARDIA)
 	set_physics_process(true)
 
 
@@ -71,6 +79,9 @@ func _physics_process(delta: float) -> void:
 	if not multiplayer.is_server():
 		body.rotation.y = lerp_angle(body.rotation.y, sync_facing, 10.0 * delta)
 		_update_cone_visual(delta)
+		# El cliente deduce la animación de la velocidad que ve, sin gastar red:
+		# el guardia lo lleva la IA del servidor y su posición ya viaja replicada.
+		_animar()
 		return
 
 	match sync_state:
@@ -88,6 +99,15 @@ func _physics_process(delta: float) -> void:
 	sync_facing = body.rotation.y
 	sync_awareness = _awareness
 	_update_cone_visual(delta)
+	_animar()
+
+
+## Camina o corre según lo rápido que se esté moviendo de verdad.
+func _animar() -> void:
+	if modelo == null:
+		return
+	var plana := Vector2(velocity.x, velocity.z).length()
+	modelo.animar_movimiento(plana, plana > SEARCH_SPEED + 0.5, false)
 
 
 # --- Percepción ---

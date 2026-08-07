@@ -22,6 +22,9 @@ const NOISE_WALK := [0.7, 6.0]
 @export var sync_body_rotation := 0.0
 @export var sync_state: int = State.FREE
 @export var sync_bottles := 0
+## Animación que está reproduciendo. Se replica para que los demás jugadores te
+## vean andar, correr o agacharte, en vez de deslizarte tieso por el suelo.
+@export var sync_anim := ""
 
 var crouching := false
 var hidden_in: Node = null
@@ -34,10 +37,9 @@ var _noise_timer := 0.0
 var _look_pitch := 0.0
 var _target_height := STAND_HEIGHT
 
+var modelo: ModeloPersonaje
+
 @onready var body: Node3D = $Body
-@onready var mesh: MeshInstance3D = $Body/Mesh
-@onready var head: MeshInstance3D = $Body/Head
-@onready var nose: MeshInstance3D = $Body/Nose
 @onready var cam_pivot: Node3D = $CamPivot
 @onready var spring_arm: SpringArm3D = $CamPivot/SpringArm
 @onready var camera: Camera3D = $CamPivot/SpringArm/Camera
@@ -54,12 +56,15 @@ func _ready() -> void:
 	add_to_group("players")
 	var peer_id := name.to_int()
 	var color: Color = GameState.player_color(peer_id)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 0.85
-	mesh.set_surface_override_material(0, mat)
-	head.material_override = mat
-	nose.material_override = mat
+
+	# Cada jugador recibe un personaje distinto de la lista, según su hueco en
+	# la partida, para poder distinguirse de un vistazo.
+	modelo = ModeloPersonaje.new()
+	modelo.name = "Modelo"
+	body.add_child(modelo)
+	modelo.montar(ModeloPersonaje.REHENES[_indice_en_partida() % ModeloPersonaje.REHENES.size()])
+	modelo.tintar(color)
+
 	name_tag.text = GameState.player_name(peer_id)
 	name_tag.modulate = color
 
@@ -69,6 +74,17 @@ func _ready() -> void:
 	if is_mine:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	GameState.players_changed.connect(_refresh_visuals)
+
+
+## Posición de este jugador en la lista de la partida (0, 1, 2...). Sirve para
+## repartir los modelos de personaje sin que se repitan.
+func _indice_en_partida() -> int:
+	var i := 0
+	for pid in GameState.players:
+		if pid == peer_id():
+			return i
+		i += 1
+	return 0
 
 
 func peer_id() -> int:
@@ -115,6 +131,10 @@ func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority():
 		body.rotation.y = lerp_angle(body.rotation.y, sync_body_rotation, 12.0 * delta)
 		_apply_remote_visuals()
+		# Los demás jugadores reproducen la animación que les llega por red.
+		if modelo != null and sync_anim != "":
+			modelo.reproducir(sync_anim)
+			modelo.agachar(sync_anim == ModeloPersonaje.AGACHADO_QUIETO or crouching)
 		return
 
 	var locked := sync_state != State.FREE or hidden_in != null
@@ -150,9 +170,25 @@ func _physics_process(delta: float) -> void:
 	sync_body_rotation = body.rotation.y
 
 	_update_crouch_shape(delta)
+	_update_animacion(want_run)
 	_update_noise(delta, want_run, basis_dir.length() > 0.05)
 	_update_interaction(delta)
 	_update_throw(delta)
+
+
+## Elige la animación según lo que esté haciendo el personaje y la publica para
+## que el resto de jugadores vean lo mismo.
+func _update_animacion(corriendo: bool) -> void:
+	if modelo == null:
+		return
+	if sync_state == State.CAPTURED:
+		modelo.reproducir(ModeloPersonaje.CAER)
+		modelo.agachar(false)
+	else:
+		var plana := Vector2(velocity.x, velocity.z).length()
+		modelo.animar_movimiento(plana, corriendo, crouching)
+		modelo.agachar(crouching)
+	sync_anim = modelo.animacion_actual()
 
 
 func _update_throw(delta: float) -> void:
@@ -180,7 +216,7 @@ func _update_crouch_shape(delta: float) -> void:
 	var capsule: CapsuleShape3D = collision.shape
 	capsule.height = move_toward(capsule.height, _target_height, 6.0 * delta)
 	collision.position.y = capsule.height * 0.5
-	body.scale.y = clampf(capsule.height / STAND_HEIGHT, 0.5, 1.0)
+	# El modelo ya no se aplasta: se agacha con su propia pose (ModeloPersonaje).
 	cam_pivot.position.y = 0.7 + capsule.height * 0.5
 
 
@@ -297,11 +333,8 @@ func net_set_hidden(spot_path: NodePath) -> void:
 		return
 	var level := get_tree().get_first_node_in_group("level")
 	hidden_in = level.get_node_or_null(spot_path) if (level != null and not spot_path.is_empty()) else null
-	var alpha := 0.35 if hidden_in != null else 1.0
-	var mat: StandardMaterial3D = mesh.get_surface_override_material(0)
-	if mat != null:
-		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA if hidden_in != null else BaseMaterial3D.TRANSPARENCY_DISABLED
-		mat.albedo_color.a = alpha
+	if modelo != null:
+		modelo.hacer_translucido(hidden_in != null)
 
 
 @rpc("any_peer", "call_local", "reliable")
