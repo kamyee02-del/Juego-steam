@@ -1,8 +1,10 @@
 class_name ItemPickup
 extends Interactable
-## Objeto recogible. Las llaves y tarjetas son objetivos del equipo (una vez
-## recogidas valen para todos); las botellas se llevan encima y se lanzan.
+## Objeto recogible. La llave y el sello son objetivos del equipo (una vez
+## recogidos valen para todos); las botellas se llevan encima y se lanzan.
 
+## El identificador "keycard" se conserva por dentro para no romper nada, pero
+## el objeto es el sello del carcelero: un medallón.
 @export var item_id := "bronze_key"    # bronze_key | keycard | bottle
 @export var item_label := "Llave de bronce"
 @export var flag := ""                 # bandera de GameState que activa (si aplica)
@@ -22,9 +24,13 @@ func _build() -> void:
 	var mi := MeshInstance3D.new()
 	match item_id:
 		"keycard":
-			var card := BoxMesh.new()
-			card.size = Vector3(0.34, 0.02, 0.22)
-			mi.mesh = card
+			# Medallón: disco grueso colgado de su cadena.
+			var sello := CylinderMesh.new()
+			sello.top_radius = 0.15
+			sello.bottom_radius = 0.15
+			sello.height = 0.04
+			mi.mesh = sello
+			mi.rotation_degrees = Vector3(90, 0, 0)
 		"bottle":
 			var bottle := CylinderMesh.new()
 			bottle.top_radius = 0.05

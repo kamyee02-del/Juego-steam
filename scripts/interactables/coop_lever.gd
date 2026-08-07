@@ -1,6 +1,6 @@
 class_name CoopLever
 extends Interactable
-## Palanca del generador. Hay dos y las dos deben mantenerse pulsadas
+## Palanca del torno del rastrillo. Hay dos y las dos deben mantenerse pulsadas
 ## a la vez por jugadores distintos: nadie puede hacerlo en solitario.
 
 const HOLD_REQUIRED := 2.5

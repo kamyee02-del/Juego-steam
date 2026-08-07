@@ -1,7 +1,8 @@
 class_name ExitGate
 extends Interactable
-## Portón eléctrico de salida. Solo se puede abrir con la corriente cortada
-## (las dos palancas del generador). Al cruzarlo, el jugador escapa.
+## Rastrillo de salida. Está trabado por las cadenas del torno y solo se puede
+## levantar tras soltarlas (las dos palancas de la sala del torno). Al cruzarlo,
+## el jugador escapa.
 
 @export var gate_width := 6.0
 @export var gate_height := 4.0
@@ -59,13 +60,14 @@ func _build() -> void:
 func _process(delta: float) -> void:
 	if _sparks == null:
 		return
+	# Brasero junto al rastrillo: rojo mientras sigue trabado, verde al soltarse.
 	if GameState.power_off or is_open:
-		_sparks.light_color = Color(0.3, 1.0, 0.5)
-		_sparks.light_energy = 0.8
+		_sparks.light_color = Color(0.45, 1.0, 0.5)
+		_sparks.light_energy = 1.2
 	else:
-		_sparks.light_color = Color(0.35, 0.75, 1.0)
-		_sparks.light_energy = 1.2 + sin(Time.get_ticks_msec() / 90.0) * 0.6
-	_sparks.rotate_y(delta)
+		_sparks.light_color = Color(1.0, 0.45, 0.2)
+		_sparks.light_energy = 1.6 + sin(Time.get_ticks_msec() / 220.0) * 0.5
+	_sparks.rotate_y(delta * 0.2)
 
 
 func can_interact(_player: Node) -> bool:
@@ -74,8 +76,8 @@ func can_interact(_player: Node) -> bool:
 
 func get_prompt(_player: Node) -> String:
 	if GameState.power_off:
-		return "Portón — abrir y salir de aquí"
-	return "Portón electrificado — corten la corriente en el generador"
+		return "Rastrillo — levantarlo y salir de aquí"
+	return "Rastrillo trabado — suelten las cadenas en la sala del torno"
 
 
 func hold_time(_player: Node) -> float:
@@ -86,11 +88,11 @@ func server_interact(_player: Node) -> void:
 	if is_open:
 		return
 	if not GameState.power_off:
-		GameState.net_message.rpc("El portón está electrificado. Hay que cortar la corriente.")
+		GameState.net_message.rpc("El rastrillo sigue trabado. Hay que soltar las cadenas del torno.")
 		return
 	net_set_open.rpc(true)
 	GameState.net_set_objective.rpc("gate_open", true)
-	GameState.net_message.rpc("¡El portón está abierto! ¡Corran a la salida!")
+	GameState.net_message.rpc("¡El rastrillo está arriba! ¡Corran a la salida!")
 
 
 @rpc("authority", "call_local", "reliable")

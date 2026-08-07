@@ -2,12 +2,14 @@ extends CanvasLayer
 ## Interfaz de la partida: objetivos, estado del equipo, avisos de sigilo,
 ## indicaciones de interacción y pantalla de resultados.
 
+## Los identificadores internos (keycard_found, power_off...) se mantienen para
+## no romper nada; lo que cambia es el texto que lee quien juega.
 const OBJECTIVES := [
 	["Salir de la celda", "cell"],
 	["Encontrar la llave de bronce", "bronze_key_found"],
-	["Encontrar la tarjeta de seguridad", "keycard_found"],
-	["Cortar la corriente (2 personas)", "power_off"],
-	["Abrir el portón y escapar", "gate_open"],
+	["Encontrar el sello del carcelero", "keycard_found"],
+	["Soltar las cadenas del rastrillo (2 personas)", "power_off"],
+	["Levantar el rastrillo y escapar", "gate_open"],
 ]
 
 var level: Node = null

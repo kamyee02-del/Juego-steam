@@ -36,15 +36,15 @@ const BOTTLE_SPOTS: Array[Vector3] = [
 const HIDING_SPOTS := [
 	["Armario", Vector3(13.2, 0, 14), Vector3(1.0, 2.0, 0.9), 90.0],
 	["Armario", Vector3(13.2, 0, 30), Vector3(1.0, 2.0, 0.9), 90.0],
-	["Taquilla", Vector3(18.2, 0, 2.5), Vector3(1.0, 2.0, 0.8), 90.0],
-	["Escritorio", Vector3(27.5, 0, 13.5), Vector3(1.6, 1.0, 1.0), 0.0],
-	["Caja", Vector3(18.5, 0, 39), Vector3(1.3, 1.4, 1.3), 0.0],
-	["Caja", Vector3(27.8, 0, 44.5), Vector3(1.3, 1.4, 1.3), 0.0],
-	["Contenedor", Vector3(30.5, 0, 9), Vector3(1.2, 1.8, 1.6), 0.0],
-	["Contenedor", Vector3(41.5, 0, 27), Vector3(1.2, 1.8, 1.6), 0.0],
+	["Alacena", Vector3(18.2, 0, 2.5), Vector3(1.0, 2.0, 0.8), 90.0],
+	["Mesa", Vector3(27.5, 0, 13.5), Vector3(1.6, 1.0, 1.0), 0.0],
+	["Arcón", Vector3(18.5, 0, 39), Vector3(1.3, 1.4, 1.3), 0.0],
+	["Arcón", Vector3(27.8, 0, 44.5), Vector3(1.3, 1.4, 1.3), 0.0],
+	["Saco de grano", Vector3(30.5, 0, 9), Vector3(1.2, 1.8, 1.6), 0.0],
+	["Saco de grano", Vector3(41.5, 0, 27), Vector3(1.2, 1.8, 1.6), 0.0],
 	["Barril", Vector3(46, 0, 8), Vector3(1.1, 1.6, 1.1), 0.0],
 	["Barril", Vector3(60, 0, 40), Vector3(1.1, 1.6, 1.1), 0.0],
-	["Caja", Vector3(30.5, 0, 44.5), Vector3(1.3, 1.4, 1.3), 0.0],
+	["Arcón", Vector3(30.5, 0, 44.5), Vector3(1.3, 1.4, 1.3), 0.0],
 ]
 const PATROL_ROUTES := [
 	[Vector3(14, 0, 5), Vector3(14, 0, 20), Vector3(14, 0, 41), Vector3(14, 0, 20)],
@@ -128,10 +128,14 @@ func _physics_process(_delta: float) -> void:
 
 # ---------------------------------------------------------------- construcción
 
-func _mat(color: Color, rough := 0.95) -> StandardMaterial3D:
+func _mat(color: Color, rough := 0.95, emision := Color.BLACK) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = color
 	m.roughness = rough
+	if emision != Color.BLACK:
+		m.emission_enabled = true
+		m.emission = emision
+		m.emission_energy_multiplier = 2.0
 	return m
 
 
@@ -176,18 +180,19 @@ func _light(pos: Vector3, color: Color, energy: float, light_range: float) -> vo
 
 
 func _build_world() -> void:
-	var floor_mat := _mat(Color(0.22, 0.23, 0.26))
-	var yard_mat := _mat(Color(0.17, 0.19, 0.18))
-	var wall_mat := _mat(Color(0.36, 0.37, 0.40))
-	var cell_mat := _mat(Color(0.30, 0.29, 0.33))
+	# Paleta de mazmorra: piedra parda y húmeda dentro, tierra en el patio.
+	var floor_mat := _mat(Color(0.20, 0.17, 0.15))    # losas del interior
+	var yard_mat := _mat(Color(0.17, 0.15, 0.12))     # tierra del patio
+	var wall_mat := _mat(Color(0.34, 0.30, 0.25))     # sillería
+	var cell_mat := _mat(Color(0.27, 0.24, 0.21))     # celdas, más oscuras
 
 	# Suelos
 	_box(nav_region, Vector3(21.5, -0.25, 23), Vector3(45, 0.5, 48), floor_mat)   # interior
 	_box(nav_region, Vector3(53.5, -0.25, 23), Vector3(21, 0.5, 48), yard_mat)    # patio
 	_box(nav_region, Vector3(68, -0.25, 23), Vector3(10, 0.5, 6), yard_mat)       # túnel de salida
 
-	# Perímetro exterior, más alto: encierra el recinto y tapa el horizonte
-	var fence_mat := _mat(Color(0.26, 0.27, 0.30))
+	# Muralla exterior, más alta: encierra el recinto y tapa el horizonte
+	var fence_mat := _mat(Color(0.24, 0.21, 0.18))
 	_wall(0, 0, 64, 0, fence_mat, PERIMETER_H)
 	_wall(0, 46, 64, 46, fence_mat, PERIMETER_H)
 	_wall(0, 0, 0, 46, fence_mat, PERIMETER_H)
@@ -213,34 +218,72 @@ func _build_world() -> void:
 		_wall(17, z, 22, z, wall_mat)
 		_wall(26, z, 29, z, wall_mat)
 
-	# Sala del generador (hueco en x 34..38)
+	# Sala del torno (hueco en x 34..38)
 	_wall(29, 33, 34, 33, wall_mat)
 	_wall(38, 33, 43, 33, wall_mat)
 
-	# Mobiliario decorativo que además sirve de cobertura visual
-	var prop_mat := _mat(Color(0.28, 0.30, 0.34))
+	# Mobiliario de madera: mesas, estanterías y el torno de cadenas.
+	var madera := _mat(Color(0.26, 0.18, 0.11))
 	for spot in [
-		[Vector3(21, 0.5, 8), Vector3(3.0, 1.0, 1.2)],      # mesa sala de guardias
-		[Vector3(25, 0.9, 38), Vector3(1.2, 1.8, 4.0)],     # estantería almacén
+		[Vector3(21, 0.5, 8), Vector3(3.0, 1.0, 1.2)],      # mesa del cuerpo de guardia
+		[Vector3(25, 0.9, 38), Vector3(1.2, 1.8, 4.0)],     # estantería de la bodega
 		[Vector3(20, 0.9, 40), Vector3(1.2, 1.8, 3.0)],
-		[Vector3(35, 1.1, 43), Vector3(4.5, 2.2, 1.6)],     # generador
-		[Vector3(50, 0.7, 20), Vector3(2.0, 1.4, 6.0)],     # muro bajo del patio
+		[Vector3(35, 1.1, 43), Vector3(4.5, 2.2, 1.6)],     # torno del rastrillo
+		[Vector3(50, 0.7, 20), Vector3(2.0, 1.4, 6.0)],     # murete del patio
 		[Vector3(56, 0.7, 33), Vector3(6.0, 1.4, 2.0)],
 	]:
-		_box(nav_region, spot[0], spot[1], prop_mat)
+		_box(nav_region, spot[0], spot[1], madera)
 
-	# Iluminación: pasillos y salas en penumbra, patio con focos fríos
+	# Antorchas pegadas a los muros, no en mitad de la sala: luz cálida y
+	# temblorosa. El patio se queda a la luz de la luna.
 	for p in [
-		Vector3(5, 3, 8), Vector3(5, 3, 36), Vector3(14, 3, 10), Vector3(14, 3, 24),
-		Vector3(14, 3, 38), Vector3(23, 3, 7), Vector3(23, 3, 23), Vector3(23, 3, 39),
-		Vector3(36, 3, 10), Vector3(36, 3, 26), Vector3(36, 3, 40),
+		Vector3(0.75, 2.4, 8), Vector3(0.75, 2.4, 18),          # celda norte
+		Vector3(0.75, 2.4, 30), Vector3(0.75, 2.4, 41),         # celda sur
+		Vector3(11.75, 2.4, 6), Vector3(16.25, 2.4, 17),        # pasillo de las celdas
+		Vector3(11.75, 2.4, 28), Vector3(16.25, 2.4, 40),
+		Vector3(17.75, 2.4, 6), Vector3(28.25, 2.4, 11),        # cuerpo de guardia
+		Vector3(17.75, 2.4, 23),                                # paso central
+		Vector3(17.75, 2.4, 38), Vector3(28.25, 2.4, 43),       # bodega
+		Vector3(29.75, 2.4, 8), Vector3(42.25, 2.4, 20),        # sala grande
+		Vector3(29.75, 2.4, 30), Vector3(42.25, 2.4, 42),       # sala del torno
 	]:
-		_light(p, Color(1.0, 0.86, 0.66), 2.4, 13.0)
+		_antorcha(p)
 	for p in [
 		Vector3(46, 6, 8), Vector3(46, 6, 38), Vector3(56, 6, 14),
 		Vector3(56, 6, 32), Vector3(61, 5, 23), Vector3(68, 4, 23),
 	]:
-		_light(p, Color(0.72, 0.84, 1.0), 5.5, 26.0)
+		_light(p, Color(0.62, 0.72, 0.95), 4.5, 26.0)
+
+
+## Antorcha de pared: soporte de madera, llama y una luz cálida que titila.
+func _antorcha(pos: Vector3) -> void:
+	var palo := MeshInstance3D.new()
+	var pm := CylinderMesh.new()
+	pm.top_radius = 0.05
+	pm.bottom_radius = 0.06
+	pm.height = 0.55
+	palo.mesh = pm
+	palo.position = pos - Vector3(0, 0.3, 0)
+	palo.material_override = _mat(Color(0.18, 0.12, 0.07))
+	add_child(palo)
+
+	var llama := MeshInstance3D.new()
+	var lm := SphereMesh.new()
+	lm.radius = 0.09
+	lm.height = 0.22
+	llama.mesh = lm
+	llama.position = pos
+	llama.material_override = _mat(Color(1.0, 0.62, 0.18), 0.2, Color(1.0, 0.55, 0.12))
+	add_child(llama)
+
+	var luz := OmniLight3D.new()
+	luz.position = pos
+	luz.light_color = Color(1.0, 0.74, 0.45)
+	luz.light_energy = 2.1
+	luz.omni_range = 11.0
+	luz.shadow_enabled = false
+	luz.set_script(preload("res://scripts/level_torch.gd"))
+	add_child(luz)
 
 
 func _build_interactables() -> void:
@@ -262,7 +305,7 @@ func _build_interactables() -> void:
 	cell_door.name = "CellBlockDoor"
 	cell_door.requires = "bronze_key_found"
 	cell_door.requires_label = "la llave de bronce"
-	cell_door.door_label = "Puerta del bloque"
+	cell_door.door_label = "Puerta del bloque de celdas"
 	cell_door.door_size = Vector3(0.45, 3.2, 4.0)
 	cell_door.position = Vector3(17, 0, 23)
 	interactables_node.add_child(cell_door)
@@ -270,29 +313,29 @@ func _build_interactables() -> void:
 	var security_door := LockedDoor.new()
 	security_door.name = "SecurityDoor"
 	security_door.requires = "keycard_found"
-	security_door.requires_label = "la tarjeta de seguridad"
-	security_door.door_label = "Puerta de seguridad"
+	security_door.requires_label = "el sello del carcelero"
+	security_door.door_label = "Puerta del guardián"
 	security_door.door_size = Vector3(0.45, 3.2, 4.0)
-	security_door.door_color = Color(0.24, 0.30, 0.36)
+	security_door.door_color = Color(0.30, 0.22, 0.14)
 	security_door.position = Vector3(43, 0, 23)
 	interactables_node.add_child(security_door)
 
-	# Portón de salida
+	# Rastrillo de salida
 	var gate := ExitGate.new()
 	gate.name = "ExitGate"
 	gate.position = Vector3(64, 0, 23)
 	interactables_node.add_child(gate)
 
-	# Palancas del generador: hacen falta dos personas a la vez
+	# Palancas del torno: hacen falta dos personas a la vez
 	var lever_a := CoopLever.new()
 	lever_a.name = "LeverA"
-	lever_a.lever_label = "Palanca izquierda"
+	lever_a.lever_label = "Cadena izquierda"
 	lever_a.position = Vector3(31.5, 0, 40)
 	interactables_node.add_child(lever_a)
 
 	var lever_b := CoopLever.new()
 	lever_b.name = "LeverB"
-	lever_b.lever_label = "Palanca derecha"
+	lever_b.lever_label = "Cadena derecha"
 	lever_b.position = Vector3(40.5, 0, 40)
 	interactables_node.add_child(lever_b)
 
@@ -311,7 +354,7 @@ func _build_interactables() -> void:
 		interactables_node.add_child(h)
 		idx += 1
 
-	# Objetivos: la llave y la tarjeta cambian de sitio cada partida
+	# Objetivos: la llave y el sello cambian de sitio cada partida
 	var key := ItemPickup.new()
 	key.name = "BronzeKey"
 	key.item_id = "bronze_key"
@@ -324,9 +367,9 @@ func _build_interactables() -> void:
 	var card := ItemPickup.new()
 	card.name = "Keycard"
 	card.item_id = "keycard"
-	card.item_label = "tarjeta de seguridad"
+	card.item_label = "sello del carcelero"
 	card.flag = "keycard_found"
-	card.item_color = Color(0.2, 0.75, 1.0)
+	card.item_color = Color(0.85, 0.75, 0.35)
 	card.position = KEYCARD_SPOTS[_rng.randi() % KEYCARD_SPOTS.size()]
 	items_node.add_child(card)
 
@@ -387,7 +430,7 @@ func _start_round() -> void:
 	for pid in GameState.players:
 		player_spawner.spawn({"id": pid, "pos": SPAWN_POINTS[i % SPAWN_POINTS.size()]})
 		i += 1
-	GameState.net_message.rpc("Están encerrados. Fuercen la reja y salgan sin que los vean.")
+	GameState.net_message.rpc("Están en las mazmorras. Fuercen la reja y salgan sin que los vean.")
 
 
 func _spawn_player(data: Dictionary) -> Node:
@@ -430,7 +473,7 @@ func on_power_cut() -> void:
 	if not multiplayer.is_server() or GameState.power_off:
 		return
 	GameState.net_set_objective.rpc("power_off", true)
-	GameState.net_message.rpc("Corriente cortada. El portón ya se puede abrir.")
+	GameState.net_message.rpc("Cadenas sueltas. El rastrillo ya se puede levantar.")
 
 
 # -------------------------------------------------------------- interacciones

@@ -10,16 +10,16 @@ size = Vector3(6, 4, 5.4)
 background_mode = 1
 background_color = Color(0.015, 0.018, 0.03, 1)
 ambient_light_source = 3
-ambient_light_color = Color(0.2, 0.24, 0.34, 1)
-ambient_light_energy = 0.35
+ambient_light_color = Color(0.24, 0.21, 0.22, 1)
+ambient_light_energy = 0.3
 tonemap_mode = 2
 tonemap_white = 3.0
 fog_enabled = true
-fog_light_color = Color(0.08, 0.1, 0.15, 1)
-fog_density = 0.012
+fog_light_color = Color(0.1, 0.085, 0.09, 1)
+fog_density = 0.015
 adjustment_enabled = true
 adjustment_contrast = 1.08
-adjustment_saturation = 1.15
+adjustment_saturation = 1.05
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_1"]
 

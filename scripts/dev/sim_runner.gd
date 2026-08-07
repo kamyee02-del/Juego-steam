@@ -38,7 +38,7 @@ func _ready() -> void:
 func _report_client_view(victory: bool) -> void:
 	_check("[cliente] la partida termina en victoria", victory)
 	_check("[cliente] ve los dos objetivos conseguidos", GameState.bronze_key_found and GameState.keycard_found)
-	_check("[cliente] ve la corriente cortada y el portón abierto", GameState.power_off and GameState.gate_open)
+	_check("[cliente] ve las cadenas sueltas y el rastrillo arriba", GameState.power_off and GameState.gate_open)
 	_check("[cliente] ve las puertas abiertas",
 		_node("Interactables/CellBlockDoor").is_open and _node("Interactables/SecurityDoor").is_open)
 	_check("[cliente] ve a todos los jugadores fuera", GameState.escaped_count() == GameState.players.size())
@@ -97,13 +97,13 @@ func _run() -> void:
 	_check("recoger la llave de bronce", GameState.bronze_key_found)
 
 	await _use(_node("Items/Keycard"), ids[0])
-	_check("recoger la tarjeta de seguridad", GameState.keycard_found)
+	_check("recoger el sello del carcelero", GameState.keycard_found)
 
 	await _use(_node("Interactables/CellBlockDoor"), ids[0])
 	_check("abrir la puerta del bloque con la llave", _node("Interactables/CellBlockDoor").is_open)
 
 	await _use(_node("Interactables/SecurityDoor"), ids[0])
-	_check("abrir la puerta de seguridad con la tarjeta", _node("Interactables/SecurityDoor").is_open)
+	_check("abrir la puerta del guardián con el sello", _node("Interactables/SecurityDoor").is_open)
 
 	var hide := _node("Interactables/Hide0")
 	await _use(hide, ids[0])
@@ -118,21 +118,21 @@ func _run() -> void:
 	await tree.create_timer(0.2).timeout
 	_check("lanzar la botella", level.find_player(ids[0]).sync_bottles == 0 and level.bottles_node.get_child_count() == 1)
 
-	# Palancas del generador: hacen falta dos jugadores a la vez.
+	# Cadenas del torno: hacen falta dos jugadores a la vez.
 	var lever_a: CoopLever = _node("Interactables/LeverA")
 	var lever_b: CoopLever = _node("Interactables/LeverB")
 	level.find_player(ids[0]).net_teleport.rpc(lever_a.global_position + Vector3(0, 0.2, 1.3))
 	await tree.create_timer(0.4).timeout
 	lever_a.server_hold(level.find_player(ids[0]), true)
 	await tree.create_timer(CoopLever.HOLD_REQUIRED + 0.6).timeout
-	_check("una sola palanca NO corta la corriente", not GameState.power_off)
+	_check("una sola cadena NO suelta el rastrillo", not GameState.power_off)
 
 	if ids.size() > 1:
 		level.find_player(ids[1]).net_teleport.rpc(lever_b.global_position + Vector3(0, 0.2, 1.3))
 		await tree.create_timer(0.4).timeout
 		lever_b.server_hold(level.find_player(ids[1]), true)
 		await tree.create_timer(CoopLever.HOLD_REQUIRED + 0.8).timeout
-		_check("las dos palancas a la vez cortan la corriente", GameState.power_off)
+		_check("las dos cadenas a la vez sueltan el rastrillo", GameState.power_off)
 	else:
 		print("[SIM] (se omite la prueba cooperativa: hace falta un segundo jugador)")
 		GameState.net_set_objective.rpc("power_off", true)
@@ -152,7 +152,7 @@ func _run() -> void:
 		await tree.create_timer(0.3).timeout
 
 	await _use(_node("Interactables/ExitGate"), rescuer)
-	_check("abrir el portón con la corriente cortada", _node("Interactables/ExitGate").is_open)
+	_check("levantar el rastrillo con las cadenas sueltas", _node("Interactables/ExitGate").is_open)
 
 	for pid in ids:
 		level.find_player(pid).net_teleport.rpc(level.escape_zone.global_position + Vector3(0, -1.4, 0))

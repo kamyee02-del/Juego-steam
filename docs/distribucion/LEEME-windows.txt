@@ -1,4 +1,4 @@
-FUGA - Juego cooperativo de escape para 2-8 jugadores
+FUGA - Escapad juntos de la mazmorra (2-8 jugadores)
 =====================================================
 
 COMO ABRIRLO
@@ -46,10 +46,10 @@ EL PLAN DE FUGA
 ---------------
 1. Forzar la reja de vuestra celda.
 2. Encontrar la llave de bronce (cambia de sitio cada partida).
-3. Encontrar la tarjeta de seguridad, en la sala de guardias.
-4. Cortar la corriente en el generador: hay DOS palancas y hacen falta DOS
-   personas manteniendolas pulsadas a la vez.
-5. Abrir el porton del fondo y salir.
+3. Encontrar el sello del carcelero, en el cuerpo de guardia.
+4. Soltar las cadenas del rastrillo en la sala del torno: hay DOS palancas y
+   hacen falta DOS personas manteniendolas pulsadas a la vez.
+5. Levantar el rastrillo del fondo y salir.
 
 Si un guardia te ve, te persigue; si te alcanza, te encierra en la celda sur
 y un companero tiene que ir a liberarte. Solo perdeis cuando no queda nadie

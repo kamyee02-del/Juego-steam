@@ -1,11 +1,11 @@
 class_name HidingSpot
 extends Interactable
-## Armario, mesa o caja donde esconderse. Mientras estás dentro los guardias
+## Armario, arcón o barril donde esconderse. Mientras estás dentro los guardias
 ## no te ven, pero tampoco puedes moverte.
 
 @export var spot_label := "Armario"
 @export var spot_size := Vector3(1.0, 2.0, 0.9)
-@export var spot_color := Color(0.32, 0.3, 0.35)
+@export var spot_color := Color(0.30, 0.21, 0.13)   # madera vieja
 
 var occupant := 0   # peer id, 0 si está libre
 
@@ -18,7 +18,7 @@ func _build() -> void:
 	hm.size = Vector3(0.08, 0.3, 0.08)
 	handle.mesh = hm
 	handle.position = Vector3(spot_size.x * 0.35, spot_size.y * 0.55, spot_size.z * 0.55)
-	handle.material_override = Interactable.make_material(Color(0.7, 0.7, 0.75), 0.3)
+	handle.material_override = Interactable.make_material(Color(0.45, 0.38, 0.22), 0.4)   # herraje
 	add_child(handle)
 
 
