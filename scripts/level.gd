@@ -22,8 +22,17 @@ const PRISON_POINTS: Array[Vector3] = [
 	Vector3(3, 0, 27), Vector3(6.5, 0, 27), Vector3(9, 0, 28), Vector3(3, 0, 32),
 	Vector3(6.5, 0, 32), Vector3(9, 0, 36), Vector3(3, 0, 39), Vector3(6.5, 0, 42),
 ]
+## Coordenada del muro con la puerta que abre la llave de bronce. Todo lo que
+## esté a la izquierda es alcanzable nada más salir de la celda.
+const PUERTA_BLOQUE_X := 17.0
+## Coordenada del muro con la puerta que abre el sello del carcelero.
+const PUERTA_GUARDIAN_X := 43.0
+
+## La llave DEBE estar en el pasillo de las celdas (x < 17): es lo único que se
+## alcanza tras forzar la reja. Estaba en la bodega, detrás de la puerta que
+## ella misma abre, y hacía la partida imposible de terminar.
 const BRONZE_KEY_SPOTS: Array[Vector3] = [
-	Vector3(20, 0, 36), Vector3(26.5, 0, 42), Vector3(19, 0, 43.5), Vector3(27, 0, 34),
+	Vector3(13.5, 0, 4), Vector3(15.6, 0, 19), Vector3(12.4, 0, 31), Vector3(15.2, 0, 44),
 ]
 const KEYCARD_SPOTS: Array[Vector3] = [
 	Vector3(20, 0, 5), Vector3(26.5, 0, 4), Vector3(19, 0, 12), Vector3(26.5, 0, 11),
@@ -139,6 +148,67 @@ func _mat(color: Color, rough := 0.95, emision := Color.BLACK) -> StandardMateri
 	return m
 
 
+## Material de piedra con grano y relieve, generado por código (sin archivos de
+## textura). Se aplica en modo triplanar: así el dibujo se proyecta desde los
+## tres ejes y encaja en todas las caras de los bloques sin desplegar UVs.
+func _mat_piedra(color: Color, escala := 0.35, relieve := 0.6) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = color
+	m.roughness = 1.0
+	m.albedo_texture = _textura_ruido(_semilla_ruido(), 0.55, 1.0)
+	m.normal_enabled = true
+	m.normal_texture = _textura_normal(_semilla_ruido())
+	m.normal_scale = relieve
+	m.uv1_triplanar = true
+	m.uv1_scale = Vector3.ONE * escala
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	return m
+
+
+var _semilla := 0
+
+func _semilla_ruido() -> int:
+	_semilla += 1
+	return _semilla
+
+
+func _ruido(semilla: int) -> FastNoiseLite:
+	var n := FastNoiseLite.new()
+	n.noise_type = FastNoiseLite.TYPE_CELLULAR      # celdas: parece sillería
+	n.seed = semilla
+	n.frequency = 0.035
+	n.cellular_return_type = FastNoiseLite.RETURN_DISTANCE2_DIV
+	n.fractal_octaves = 3
+	return n
+
+
+func _textura_ruido(semilla: int, minimo: float, maximo: float) -> NoiseTexture2D:
+	var t := NoiseTexture2D.new()
+	t.width = 512
+	t.height = 512
+	t.seamless = true
+	t.noise = _ruido(semilla)
+	# Rampa de grises: la piedra no llega a negro ni a blanco puro.
+	var rampa := Gradient.new()
+	rampa.set_color(0, Color(minimo, minimo, minimo))
+	rampa.set_color(1, Color(maximo, maximo, maximo))
+	var gt := GradientTexture1D.new()
+	gt.gradient = rampa
+	t.color_ramp = rampa
+	return t
+
+
+func _textura_normal(semilla: int) -> NoiseTexture2D:
+	var t := NoiseTexture2D.new()
+	t.width = 512
+	t.height = 512
+	t.seamless = true
+	t.as_normal_map = true
+	t.bump_strength = 5.0
+	t.noise = _ruido(semilla)
+	return t
+
+
 func _box(parent: Node, center: Vector3, box_size: Vector3, mat: Material, solid := true) -> void:
 	var mi := MeshInstance3D.new()
 	var bm := BoxMesh.new()
@@ -181,10 +251,11 @@ func _light(pos: Vector3, color: Color, energy: float, light_range: float) -> vo
 
 func _build_world() -> void:
 	# Paleta de mazmorra: piedra parda y húmeda dentro, tierra en el patio.
-	var floor_mat := _mat(Color(0.20, 0.17, 0.15))    # losas del interior
-	var yard_mat := _mat(Color(0.17, 0.15, 0.12))     # tierra del patio
-	var wall_mat := _mat(Color(0.34, 0.30, 0.25))     # sillería
-	var cell_mat := _mat(Color(0.27, 0.24, 0.21))     # celdas, más oscuras
+	# Todo con textura de piedra generada por código, no color plano.
+	var floor_mat := _mat_piedra(Color(0.26, 0.22, 0.19), 0.20, 0.3)   # losas
+	var yard_mat := _mat_piedra(Color(0.22, 0.19, 0.15), 0.22, 0.3)    # tierra del patio
+	var wall_mat := _mat_piedra(Color(0.42, 0.37, 0.31), 0.16, 0.45)    # sillería
+	var cell_mat := _mat_piedra(Color(0.34, 0.30, 0.26), 0.15, 0.45)    # celdas
 
 	# Suelos
 	_box(nav_region, Vector3(21.5, -0.25, 23), Vector3(45, 0.5, 48), floor_mat)   # interior
@@ -192,7 +263,7 @@ func _build_world() -> void:
 	_box(nav_region, Vector3(68, -0.25, 23), Vector3(10, 0.5, 6), yard_mat)       # túnel de salida
 
 	# Muralla exterior, más alta: encierra el recinto y tapa el horizonte
-	var fence_mat := _mat(Color(0.24, 0.21, 0.18))
+	var fence_mat := _mat_piedra(Color(0.30, 0.26, 0.22), 0.14, 0.45)
 	_wall(0, 0, 64, 0, fence_mat, PERIMETER_H)
 	_wall(0, 46, 64, 46, fence_mat, PERIMETER_H)
 	_wall(0, 0, 0, 46, fence_mat, PERIMETER_H)
@@ -255,35 +326,72 @@ func _build_world() -> void:
 		_light(p, Color(0.62, 0.72, 0.95), 4.5, 26.0)
 
 
-## Antorcha de pared: soporte de madera, llama y una luz cálida que titila.
+## Antorcha de pared: mango de madera, aro de hierro y una llama de dos capas
+## en forma de gota. Antes era una esfera brillante y parecía una bombilla.
 func _antorcha(pos: Vector3) -> void:
-	var palo := MeshInstance3D.new()
-	var pm := CylinderMesh.new()
-	pm.top_radius = 0.05
-	pm.bottom_radius = 0.06
-	pm.height = 0.55
-	palo.mesh = pm
-	palo.position = pos - Vector3(0, 0.3, 0)
-	palo.material_override = _mat(Color(0.18, 0.12, 0.07))
-	add_child(palo)
+	var soporte := Node3D.new()
+	soporte.position = pos
+	# Inclinada hacia arriba, como una antorcha encajada en su aro.
+	soporte.rotation.x = deg_to_rad(-18.0)
+	add_child(soporte)
 
+	var mango := MeshInstance3D.new()
+	var mm := CylinderMesh.new()
+	mm.top_radius = 0.045
+	mm.bottom_radius = 0.06
+	mm.height = 0.62
+	mango.mesh = mm
+	mango.position = Vector3(0, -0.3, 0)
+	mango.material_override = _mat(Color(0.16, 0.10, 0.05))
+	soporte.add_child(mango)
+
+	# Aro de hierro que la sujeta al muro.
+	var aro := MeshInstance3D.new()
+	var am := TorusMesh.new()
+	am.inner_radius = 0.07
+	am.outer_radius = 0.11
+	aro.mesh = am
+	aro.position = Vector3(0, -0.42, 0)
+	aro.material_override = _mat(Color(0.13, 0.12, 0.11), 0.5)
+	soporte.add_child(aro)
+
+	# Estopa ardiendo: una gota (esfera estirada), no un cono. Un cono se ve
+	# como un triángulo plano cuando lo tienes cerca.
 	var llama := MeshInstance3D.new()
 	var lm := SphereMesh.new()
-	lm.radius = 0.09
-	lm.height = 0.22
+	lm.radius = 0.085
+	lm.height = 0.30
+	lm.radial_segments = 12
+	lm.rings = 8
 	llama.mesh = lm
-	llama.position = pos
-	llama.material_override = _mat(Color(1.0, 0.62, 0.18), 0.2, Color(1.0, 0.55, 0.12))
-	add_child(llama)
+	llama.position = Vector3(0, 0.17, 0)
+	var mat_llama := _mat(Color(1.0, 0.45, 0.08), 0.1, Color(1.0, 0.40, 0.06))
+	# Bordes suaves: por transparencia el contorno no recorta contra el muro.
+	mat_llama.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat_llama.albedo_color.a = 0.85
+	llama.material_override = mat_llama
+	soporte.add_child(llama)
+
+	# Corazón amarillo, más pequeño: da profundidad sin comerse la llama.
+	var nucleo := MeshInstance3D.new()
+	var nm := SphereMesh.new()
+	nm.radius = 0.045
+	nm.height = 0.16
+	nm.radial_segments = 10
+	nm.rings = 6
+	nucleo.mesh = nm
+	nucleo.position = Vector3(0, 0.13, 0)
+	nucleo.material_override = _mat(Color(1.0, 0.88, 0.5), 0.1, Color(1.0, 0.84, 0.4))
+	soporte.add_child(nucleo)
 
 	var luz := OmniLight3D.new()
-	luz.position = pos
+	luz.position = Vector3(0, 0.2, 0)
 	luz.light_color = Color(1.0, 0.74, 0.45)
 	luz.light_energy = 2.1
 	luz.omni_range = 11.0
 	luz.shadow_enabled = false
 	luz.set_script(preload("res://scripts/level_torch.gd"))
-	add_child(luz)
+	soporte.add_child(luz)
 
 
 func _build_interactables() -> void:
@@ -489,8 +597,8 @@ func request_interact(target_path: NodePath, pid: int) -> void:
 	var player := find_player(pid)
 	if target == null or player == null or not target.has_method("server_interact"):
 		return
-	if player.global_position.distance_to(target.global_position) > 4.0:
-		return
+	if not Interaccion.puede_interactuar(player, target):
+		return   # demasiado lejos, o hay un muro de por medio
 	if not target.can_interact(player):
 		return
 	target.server_interact(player)
@@ -507,7 +615,7 @@ func request_hold(target_path: NodePath, pid: int, holding: bool) -> void:
 	var player := find_player(pid)
 	if target == null or player == null or not target.has_method("server_hold"):
 		return
-	if holding and (player.global_position.distance_to(target.global_position) > 4.0 or not target.can_interact(player)):
+	if holding and (not Interaccion.puede_interactuar(player, target) or not target.can_interact(player)):
 		return
 	target.server_hold(player, holding)
 

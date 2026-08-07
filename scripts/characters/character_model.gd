@@ -47,6 +47,11 @@ func montar(nombre: String) -> bool:
 	var packed: PackedScene = load(ruta)
 	_modelo = packed.instantiate()
 	_modelo.scale = Vector3.ONE * ESCALA
+	# Los modelos de KayKit miran hacia +Z, pero el juego orienta los cuerpos
+	# hacia -Z (el "adelante" de Godot). Sin este giro los personajes andan de
+	# espaldas. Se corrige aquí y no en el movimiento para que valga a la vez
+	# para el jugador y para el guardia, y sin tocar el cono de visión.
+	_modelo.rotation.y = PI
 	add_child(_modelo)
 
 	_anim = AnimationPlayer.new()
@@ -162,6 +167,8 @@ func agachar(activo: bool) -> void:
 	if _modelo == null:
 		return
 	var destino_y := -0.28 if activo else 0.0
-	var destino_x := 0.22 if activo else 0.0
+	# Negativo porque el modelo va girado 180 grados: así se inclina hacia
+	# delante y no hacia atrás.
+	var destino_x := -0.22 if activo else 0.0
 	_modelo.position.y = lerpf(_modelo.position.y, destino_y, 0.25)
 	_modelo.rotation.x = lerp_angle(_modelo.rotation.x, destino_x, 0.25)

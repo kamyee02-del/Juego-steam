@@ -244,6 +244,8 @@ func _update_interaction(delta: float) -> void:
 			continue
 		if not it.can_interact(self):
 			continue
+		if not Interaccion.hay_linea_de_vision(self, it):
+			continue   # está al otro lado de un muro
 		var d := global_position.distance_squared_to(area.global_position)
 		if d < best_dist:
 			best_dist = d

@@ -67,9 +67,52 @@ func _check(label: String, condition: bool) -> void:
 	print("[SIM] %s %s" % ["OK  " if condition else "FALLO", label])
 
 
+## Cada llave tiene que estar ANTES de la puerta que abre, o la partida se queda
+## bloqueada. Esta comprobación existe porque la llave de bronce llegó a
+## colocarse detrás de su propia puerta: el resto de pruebas no lo detectaron
+## porque teleportan al jugador hasta cada objetivo en vez de ir andando.
+func _comprobar_progresion(pid: int) -> void:
+	var salida: float = level.PUERTA_BLOQUE_X
+	var guardian: float = level.PUERTA_GUARDIAN_X
+
+	var jugador: Node3D = level.find_player(pid)
+	_check("los jugadores empiezan antes de la puerta del bloque",
+		jugador.global_position.x < salida)
+
+	var llave: Node3D = _node("Items/BronzeKey")
+	_check("la llave de bronce está ANTES de la puerta que abre (x=%.1f < %.1f)"
+		% [llave.global_position.x, salida], llave.global_position.x < salida)
+
+	var sello: Node3D = _node("Items/Keycard")
+	_check("el sello está tras la primera puerta y antes de la suya (%.1f < x=%.1f < %.1f)"
+		% [salida, sello.global_position.x, guardian],
+		sello.global_position.x > salida and sello.global_position.x < guardian)
+
+	var palanca: Node3D = _node("Interactables/LeverA")
+	_check("las cadenas del torno están antes de la puerta del guardián",
+		palanca.global_position.x < guardian)
+
+	var rastrillo: Node3D = _node("Interactables/ExitGate")
+	_check("el rastrillo de salida está al final del todo",
+		rastrillo.global_position.x > guardian)
+
+
+## Coloca al jugador junto al objeto y lo usa. Prueba varios lados hasta dar con
+## uno desde el que se vea de verdad: colocarlo a ciegas podía dejarlo dentro de
+## un muro, y ahora el servidor rechaza las interacciones sin línea de visión.
 func _use(node: Node3D, pid: int) -> void:
-	level.find_player(pid).net_teleport.rpc(node.global_position + Vector3(0, 0.2, 1.3))
-	await get_tree().create_timer(0.35).timeout
+	var jugador: Node3D = level.find_player(pid)
+	var lados := [
+		Vector3(0, 0.2, 1.3), Vector3(0, 0.2, -1.3),
+		Vector3(1.3, 0.2, 0), Vector3(-1.3, 0.2, 0),
+	]
+	for lado in lados:
+		jugador.net_teleport.rpc(node.global_position + lado)
+		await get_tree().physics_frame
+		await get_tree().physics_frame
+		if Interaccion.puede_interactuar(jugador, node):
+			break
+	await get_tree().create_timer(0.3).timeout
 	level.request_interact(node.get_path(), pid)
 	await get_tree().create_timer(0.35).timeout
 
@@ -85,10 +128,17 @@ func _run() -> void:
 	await tree.create_timer(1.0).timeout
 	var ids: Array = GameState.players.keys()
 	print("[SIM] === plan de fuga con %d jugador(es) ===" % ids.size())
+	if ids.is_empty():
+		# Suele significar que el puerto estaba ocupado y nadie llegó a entrar.
+		print("[SIM] === ABORTADA: no hay jugadores en la partida ===")
+		tree.quit(1)
+		return
 
 	# Los guardias no deben interferir con la comprobación de mecánicas.
 	for g in level.guards_node.get_children():
 		g.set_physics_process(false)
+
+	_comprobar_progresion(ids[0])
 
 	await _use(_node("Interactables/NorthCellGate"), ids[0])
 	_check("forzar la reja de la celda", _node("Interactables/NorthCellGate").is_open)
